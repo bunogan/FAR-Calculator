@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.bunogan.twa",
+        "sha256_cert_fingerprints": ["4B:04:28:15:CD:47:D6:89:28:A4:A9:33:24:7E:1C:AB:2E:9D:53:60:5C:AB:59:7F:FB:EE:08:F1:50:EB:8B:82"]
+      }
+    }]
