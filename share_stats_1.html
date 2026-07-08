@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>শেয়ার পরিসংখ্যান — Mahbubur Rahman Apps</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f2ea;
+    --ink:#14324a;
+    --ink-soft:#3c5a70;
+    --line:#c9c2ab;
+    --gold:#d8b400;
+    --maroon:#5c1a1a;
+    --mono:'Space Mono', monospace;
+    --sans:'Hind Siliguri','Space Mono',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  header{
+    background:var(--ink);
+    color:var(--paper);
+    padding:24px 18px;
+    text-align:center;
+  }
+  header p.eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  header h1{margin:0;font-size:20px;}
+  main{max-width:520px;margin:0 auto;padding:20px 16px;}
+  .card{
+    background:#fffdf6;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px 20px;
+    margin-bottom:18px;
+    box-shadow:0 2px 0 var(--line);
+    text-align:center;
+  }
+  .card.tin{border-top:4px solid var(--maroon);}
+  .card.far{border-top:4px solid var(--ink);}
+  .card-label{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .card-num{
+    font-family:var(--mono);
+    font-size:44px;
+    font-weight:700;
+    line-height:1;
+  }
+  .card.tin .card-num{color:var(--maroon);}
+  .card.far .card-num{color:var(--ink);}
+  .card-cap{font-size:11.5px;color:#8a8265;margin-top:6px;}
+  .total-card{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:10px;
+    padding:20px;
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .total-card .card-label{color:#c7d6de;}
+  .total-card .card-num{color:var(--gold);font-size:38px;}
+  button{
+    display:block;
+    width:100%;
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:14px;
+    padding:12px;
+    border-radius:8px;
+    border:1.5px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    cursor:pointer;
+  }
+  button:active{opacity:.85;}
+  .note{
+    font-size:11.5px;
+    color:#8a8265;
+    text-align:center;
+    margin-top:16px;
+    line-height:1.6;
+  }
+  .loading{opacity:.4;}
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Developed by Architect Mahbubur Rahman</p>
+  <h1>শেয়ার পরিসংখ্যান</h1>
+</header>
+
+<main>
+  <div class="total-card">
+    <div class="card-label">মোট শেয়ার (দুই অ্যাপ মিলিয়ে)</div>
+    <div class="card-num" id="totalCount">—</div>
+  </div>
+
+  <div class="card far">
+    <div class="card-label">FAR ক্যালকুলেটর</div>
+    <div class="card-num" id="farCount">—</div>
+    <div class="card-cap">লিংক শেয়ার + WhatsApp শেয়ার বাটনে মোট ক্লিক</div>
+  </div>
+
+  <div class="card tin">
+    <div class="card-label">TIN অডিট সিলেকশন সার্চ</div>
+    <div class="card-num" id="tinCount">—</div>
+    <div class="card-cap">লিংক/ফলাফল শেয়ার + WhatsApp শেয়ার বাটনে মোট ক্লিক</div>
+  </div>
+
+  <button id="refreshBtn">🔄 রিফ্রেশ করুন</button>
+
+  <p class="note">
+    এই সংখ্যা শুধু "শেয়ার" বাটনে ক্লিকের হিসাব রাখে — কেউ যদি বাটন ছাড়া সরাসরি লিংক কপি করে পাঠায়, তা গোনা হয় না।
+    গণনা একটি পাবলিক, বেনামী কাউন্টার সার্ভিস (countapi.xyz) দিয়ে করা — কোনো ব্যক্তিগত তথ্য সংগ্রহ করা হয় না।
+  </p>
+</main>
+
+<script>
+const FAR_KEY = 'mahbub_architect_far_calculator_shares_v1';
+const TIN_KEY = 'mahbub_architect_tin_search_shares_v1';
+
+async function getCount(key){
+  try{
+    const res = await fetch(`https://countapi.mileshilliard.com/api/v1/get/${key}`);
+    if(res.status === 404) return 0; // key not created yet = no shares yet
+    if(!res.ok) return null;
+    const data = await res.json();
+    const v = parseInt(data.value, 10);
+    return isNaN(v) ? 0 : v;
+  }catch(err){
+    return null;
+  }
+}
+
+async function loadCounts(){
+  const farEl = document.getElementById('farCount');
+  const tinEl = document.getElementById('tinCount');
+  const totalEl = document.getElementById('totalCount');
+  farEl.textContent = '…';
+  tinEl.textContent = '…';
+  totalEl.textContent = '…';
+
+  const [farCount, tinCount] = await Promise.all([getCount(FAR_KEY), getCount(TIN_KEY)]);
+
+  farEl.textContent = farCount === null ? 'লোড ব্যর্থ' : farCount.toLocaleString('en-US');
+  tinEl.textContent = tinCount === null ? 'লোড ব্যর্থ' : tinCount.toLocaleString('en-US');
+
+  if(farCount !== null && tinCount !== null){
+    totalEl.textContent = (farCount + tinCount).toLocaleString('en-US');
+  } else {
+    totalEl.textContent = '—';
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadCounts);
+loadCounts();
+</script>
+
+</body>
+</html>

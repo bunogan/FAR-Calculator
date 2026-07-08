@@ -843,10 +843,9 @@ async function shareOrCopy(shareData, copyText, copiedMsg){
 }
 
 // ---------- Share counter (public, anonymous — counts button clicks only) ----------
-const SHARE_COUNTER_NS = 'mahbub-architect-apps';
-const SHARE_COUNTER_KEY = 'far-calculator';
+const SHARE_COUNTER_KEY = 'mahbub_architect_far_calculator_shares_v1';
 function bumpShareCounter(){
-  fetch(`https://api.countapi.xyz/hit/${SHARE_COUNTER_NS}/${SHARE_COUNTER_KEY}`).catch(()=>{});
+  fetch(`https://countapi.mileshilliard.com/api/v1/hit/${SHARE_COUNTER_KEY}`).catch(()=>{});
 }
 
 document.getElementById('shareAppBtn').addEventListener('click', ()=>{
