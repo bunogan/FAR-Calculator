@@ -842,7 +842,15 @@ async function shareOrCopy(shareData, copyText, copiedMsg){
   }
 }
 
+// ---------- Share counter (public, anonymous — counts button clicks only) ----------
+const SHARE_COUNTER_NS = 'mahbub-architect-apps';
+const SHARE_COUNTER_KEY = 'far-calculator';
+function bumpShareCounter(){
+  fetch(`https://api.countapi.xyz/hit/${SHARE_COUNTER_NS}/${SHARE_COUNTER_KEY}`).catch(()=>{});
+}
+
 document.getElementById('shareAppBtn').addEventListener('click', ()=>{
+  bumpShareCounter();
   const url = window.location.href.split('#')[0];
   shareOrCopy(
     { title: 'FAR ক্যালকুলেটর', text: 'RAJUK/DAP অনুযায়ী FAR, তলা ও ইউনিট সংখ্যা ক্যালকুলেটর', url },
@@ -852,6 +860,7 @@ document.getElementById('shareAppBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('shareAppWaBtn').addEventListener('click', ()=>{
+  bumpShareCounter();
   const url = window.location.href.split('#')[0];
   const text = `RAJUK/DAP অনুযায়ী FAR, তলা ও ইউনিট সংখ্যা ক্যালকুলেটর\n${url}`;
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
