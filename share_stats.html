@@ -130,19 +130,22 @@
 
   <p class="note">
     এই সংখ্যা শুধু "শেয়ার" বাটনে ক্লিকের হিসাব রাখে — কেউ যদি বাটন ছাড়া সরাসরি লিংক কপি করে পাঠায়, তা গোনা হয় না।
-    গণনা একটি পাবলিক, বেনামী কাউন্টার সার্ভিস (countapi.xyz) দিয়ে করা — কোনো ব্যক্তিগত তথ্য সংগ্রহ করা হয় না।
+    গণনা একটি পাবলিক, বেনামী কাউন্টার সার্ভিস দিয়ে করা — কোনো ব্যক্তিগত তথ্য সংগ্রহ করা হয় না।
   </p>
 </main>
 
 <script>
-const NS = 'mahbub-architect-apps';
+const FAR_KEY = 'mahbub_architect_far_calculator_shares_v1';
+const TIN_KEY = 'mahbub_architect_tin_search_shares_v1';
 
 async function getCount(key){
   try{
-    const res = await fetch(`https://api.countapi.xyz/get/${NS}/${key}`);
+    const res = await fetch(`https://countapi.mileshilliard.com/api/v1/get/${key}`);
+    if(res.status === 404) return 0; // key not created yet = no shares yet
     if(!res.ok) return null;
     const data = await res.json();
-    return data.value ?? 0;
+    const v = parseInt(data.value, 10);
+    return isNaN(v) ? 0 : v;
   }catch(err){
     return null;
   }
@@ -156,7 +159,7 @@ async function loadCounts(){
   tinEl.textContent = '…';
   totalEl.textContent = '…';
 
-  const [farCount, tinCount] = await Promise.all([getCount('far-calculator'), getCount('tin-search')]);
+  const [farCount, tinCount] = await Promise.all([getCount(FAR_KEY), getCount(TIN_KEY)]);
 
   farEl.textContent = farCount === null ? 'লোড ব্যর্থ' : farCount.toLocaleString('en-US');
   tinEl.textContent = tinCount === null ? 'লোড ব্যর্থ' : tinCount.toLocaleString('en-US');
