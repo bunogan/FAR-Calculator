@@ -70,6 +70,39 @@
     font-size:13px;
     color:#c7d6de;
   }
+  .share-btn{
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:13px;
+    padding:9px 16px;
+    border-radius:20px;
+    border:1.5px solid var(--input-border);
+    background:rgba(244,242,234,0.08);
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .share-btn:active{background:rgba(244,242,234,0.2);}
+  .share-btn.wa-btn{
+    border-color:#25D366;
+    background:#25D366;
+    color:#0b3d1f;
+  }
+  .toast{
+    position:fixed;
+    left:50%; bottom:24px;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:var(--paper);
+    padding:10px 18px;
+    border-radius:20px;
+    font-size:13px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+    z-index:50;
+  }
+  .toast.show{opacity:1;}
   main{
     max-width:640px;
     margin:0 auto;
@@ -226,6 +259,7 @@
 </style>
 </head>
 <body>
+<div id="toast" class="toast"></div>
 
 <header>
   <p class="eyebrow">RAJUK · Building Construction Rules</p>
@@ -235,6 +269,10 @@
     <img src="data:image/jpeg;base64,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" alt="Mahbubur Rahman" style="width:20px;height:20px;border-radius:50%;object-fit:cover;flex:none;">
     Developed by Architect Mahbubur Rahman
   </p>
+  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+    <button type="button" id="shareAppBtn" class="share-btn">🔗 লিংক শেয়ার করুন</button>
+    <button type="button" id="shareAppWaBtn" class="share-btn wa-btn">🟢 WhatsApp-এ শেয়ার</button>
+  </div>
 </header>
 
 <main>
@@ -771,6 +809,52 @@ document.getElementById('mapCloseBtn').addEventListener('click', ()=>{
 });
 document.getElementById('mapModal').addEventListener('click', (e)=>{
   if(e.target.id === 'mapModal') e.target.style.display = 'none';
+});
+
+// ---------- Share ----------
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 2200);
+}
+
+const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+async function shareOrCopy(shareData, copyText, copiedMsg){
+  if(isMobileDevice && navigator.share){
+    try{
+      if(!navigator.canShare || navigator.canShare(shareData)){
+        await navigator.share(shareData);
+        return;
+      }
+    }catch(err){
+      if(err && err.name === 'AbortError') return;
+    }
+  }
+  try{
+    await navigator.clipboard.writeText(copyText);
+    showToast(copiedMsg);
+  }catch(err){
+    showToast('শেয়ার করা যায়নি, লিংক ম্যানুয়ালি কপি করুন');
+  }
+}
+
+document.getElementById('shareAppBtn').addEventListener('click', ()=>{
+  const url = window.location.href.split('#')[0];
+  shareOrCopy(
+    { title: 'FAR ক্যালকুলেটর', text: 'RAJUK/DAP অনুযায়ী FAR, তলা ও ইউনিট সংখ্যা ক্যালকুলেটর', url },
+    url,
+    'লিংক কপি হয়েছে ✅'
+  );
+});
+
+document.getElementById('shareAppWaBtn').addEventListener('click', ()=>{
+  const url = window.location.href.split('#')[0];
+  const text = `RAJUK/DAP অনুযায়ী FAR, তলা ও ইউনিট সংখ্যা ক্যালকুলেটর\n${url}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
 });
 
 compute();
