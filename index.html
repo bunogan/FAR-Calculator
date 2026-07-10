@@ -403,8 +403,9 @@
         <button type="button" id="mapBtn" style="margin-top:8px;width:100%;padding:9px;font-family:'Hind Siliguri',sans-serif;font-weight:600;font-size:13px;border:1.5px solid var(--input-border);border-radius:6px;background:#fff;color:var(--ink);cursor:pointer;">🗺️ ব্লক ম্যাপ দেখুন (কোন নম্বর কোথায়)</button>
       </div>
       <div class="field">
-        <label for="useType">ইমারতের উপ-শ্রেণি <span class="unit">(পরিশিষ্ট ৩.৫ — কেন্দ্রীয় ঢাকা)</span></label>
-        <select id="useType">
+        <label for="useTypeTrigger">ইমারতের উপ-শ্রেণি <span class="unit">(পরিশিষ্ট ৩.৫ — কেন্দ্রীয় ঢাকা)</span></label>
+        <button type="button" id="useTypeTrigger" class="block-trigger placeholder">বেছে নিন</button>
+        <select id="useType" style="display:none;" aria-hidden="true" tabindex="-1">
           <option value="" selected disabled>বেছে নিন</option>
         </select>
         <p class="placeholder-hint">বর্তমানে শুধু "A: আবাসিক (কেন্দ্রীয় ঢাকা)" জোনের সারণি যুক্ত আছে।</p>
@@ -543,6 +544,16 @@
       <input type="text" id="blockSearchInput" placeholder="নম্বর, নাম বা এলাকা দিয়ে খুঁজুন..." autocomplete="off">
     </div>
     <div id="blockListWrap" class="block-list"></div>
+  </div>
+</div>
+
+<div id="useTypeModal" class="block-modal">
+  <div class="block-modal-panel">
+    <div class="block-modal-head">
+      <strong>ইমারতের উপ-শ্রেণি বেছে নিন</strong>
+      <button type="button" id="useTypeModalCloseBtn" class="block-modal-close">✕</button>
+    </div>
+    <div id="useTypeListWrap" class="block-list"></div>
   </div>
 </div>
 
@@ -725,6 +736,44 @@ Object.entries(PLOT_FAR_TABLE).forEach(([code,info])=>{
   const opt = document.createElement('option');
   opt.value = code; opt.textContent = `${code} — ${info.label}`;
   useTypeSel.appendChild(opt);
+});
+
+// ---------- Custom useType picker ----------
+const useTypeTrigger = document.getElementById('useTypeTrigger');
+const useTypeModal = document.getElementById('useTypeModal');
+const useTypeModalCloseBtn = document.getElementById('useTypeModalCloseBtn');
+const useTypeListWrap = document.getElementById('useTypeListWrap');
+
+function renderUseTypeList(){
+  useTypeListWrap.innerHTML = Object.entries(PLOT_FAR_TABLE).map(([code,info])=>{
+    return `<button type="button" class="block-item" data-code="${code}">
+      <div class="b-name">${code} — ${info.label}</div>
+    </button>`;
+  }).join('');
+}
+
+function openUseTypeModal(){
+  renderUseTypeList();
+  useTypeModal.classList.add('open');
+}
+function closeUseTypeModal(){
+  useTypeModal.classList.remove('open');
+}
+
+useTypeTrigger.addEventListener('click', openUseTypeModal);
+useTypeModalCloseBtn.addEventListener('click', closeUseTypeModal);
+useTypeModal.addEventListener('click', (e)=>{
+  if(e.target.id === 'useTypeModal') closeUseTypeModal();
+});
+useTypeListWrap.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.block-item');
+  if(!btn) return;
+  const code = btn.dataset.code;
+  useTypeSel.value = code;
+  useTypeSel.dispatchEvent(new Event('change', {bubbles:true}));
+  useTypeTrigger.textContent = `${code} — ${PLOT_FAR_TABLE[code].label}`;
+  useTypeTrigger.classList.remove('placeholder');
+  closeUseTypeModal();
 });
 
 function plotFARByRoadWidth(D, useType){
