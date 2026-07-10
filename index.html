@@ -885,6 +885,13 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
+  // নতুন ভার্শন সক্রিয় হলে পেজ নিজে থেকেই একবার রিফ্রেশ হবে — ব্যবহারকারীর কিছু করা লাগবে না
+  let swRefreshed = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRefreshed) return;
+    swRefreshed = true;
+    window.location.reload();
+  });
 }
 </script>
 </body>
