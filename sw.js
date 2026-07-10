@@ -1,4 +1,4 @@
-const CACHE_NAME = 'far-calculator-v12';
+const CACHE_NAME = 'far-calculator-v14';
 const urlsToCache = [
   './',
   './index.html',
