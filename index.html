@@ -838,6 +838,12 @@ function fmt(n, d=2){
   return Number(n).toFixed(d).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');
 }
 
+function minRoadWidthFor(UT){
+  if(UT === 'A5') return 20;
+  if(UT === 'A4') return 8;
+  return 6;
+}
+
 function compute(){
   const A = blockSel.value;
   const UT = useTypeSel.value;
@@ -846,10 +852,13 @@ function compute(){
 
   const emptyMsg = document.getElementById('emptyMsg');
   const roadWidthWarning = document.getElementById('roadWidthWarning');
-  const roadWidthInvalid = !isNaN(D) && D < 6;
+  const minRW = minRoadWidthFor(UT);
+  const roadWidthInvalid = !isNaN(D) && D < minRW;
+  roadWidthWarning.textContent = `রাস্তার প্রশস্ততা কমপক্ষে ${fmt(minRW,0)} ফুট হতে হবে${UT?` (${UT}-এর জন্য)`:''}।`;
   roadWidthWarning.style.display = roadWidthInvalid ? 'block' : 'none';
+  document.getElementById('roadWidth').min = minRW;
 
-  const ready = A!=='' && UT!=='' && !isNaN(C) && !isNaN(D) && C>0 && D>=6;
+  const ready = A!=='' && UT!=='' && !isNaN(C) && !isNaN(D) && C>0 && D>=minRW;
   emptyMsg.style.display = ready ? 'none' : 'block';
 
   if(!ready){
