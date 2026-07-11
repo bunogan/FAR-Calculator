@@ -793,16 +793,18 @@ function incentiveFAR(C){
   if(C<20) return 0.65;
   return 0.75;
 }
-function mgcPercent(C){
-  if(C<2) return 67.5;
-  if(C<=3) return 65;
-  if(C<=4) return 62.5;
-  if(C<=5) return 62.5;
-  if(C<=6) return 60;
-  if(C<=7) return 60;
-  if(C<=9) return 60;
-  if(C<=10) return 57.5;
-  return null; // See Index
+// সারণি ৩ (বাংলাদেশ গেজেট, অতিরিক্ত, ডিসেম্বর ১৪, ২০২৫) — সর্বোচ্চ ভূমি আচ্ছাদন (MGC)
+function mgcPercent(C, UT){
+  if(UT === 'A6') return 75; // A6: সাশ্রয়ী আবাসন — যেকোনো প্লটের ক্ষেত্রে বিশেষ হার
+  if(C<=2) return 70;
+  if(C<=3) return 67.5;
+  if(C<=4) return 65;
+  if(C<=6) return 62.5;
+  if(C<=10) return 60;
+  if(C<=14) return 55;
+  if(C<=20) return 50;
+  if(C<=40) return 45;
+  return 40;
 }
 
 const fields = ['block','useType','landSize','roadWidth'].map(id=>document.getElementById(id));
@@ -894,7 +896,7 @@ function compute(){
   const S = R*EXTRA_DU_BONUS;
   const T = R+S;
   const U = P*F;
-  const V = mgcPercent(C);
+  const V = mgcPercent(C, UT);
   const W = V===null ? null : F*V/100;
   const X = W;
   const floor1 = (X && X>0) ? U/X : null;
@@ -944,7 +946,8 @@ function computeStep2(){
   const emptyMsg2 = document.getElementById('emptyMsg2');
   const far1 = window.__far1;
   const netDensity = far1 ? far1.netDensity : NaN;
-  const ready = far1 && far1.mgc!==null && !isNaN(netDensity) && netDensity>0;
+  // শুধু netDensity লাগবে হিসাব শুরু করতে — MGC না থাকলেও (>১০ কাঠা) প্রণোদনা/FAR হিসাব চলবে
+  const ready = far1 && !isNaN(netDensity) && netDensity>0;
   emptyMsg2.style.display = ready ? 'none' : 'block';
   document.getElementById('netDensityDisplay').textContent = (far1 && !isNaN(netDensity)) ? fmt(netDensity) : '—';
 
@@ -1021,14 +1024,21 @@ function computeStep2(){
   const totalFAR2 = baseFAR + incTotal;
   const approvedFAR = Math.min(totalFAR2, maxFAR);
 
+  // floorSpace-এর জন্য MGC লাগে না, সরাসরি approvedFAR থেকেই বের হয়
   const floorSpace = approvedFAR * F;
-  const groundCoverage = F * mgc / 100;
-  const height = groundCoverage>0 ? Math.round(floorSpace/groundCoverage) : null;
+  // groundCoverage ও height-এর জন্য MGC লাগে — ১০ কাঠার বেশি জমিতে এখনো MGC সারণি যোগ করা হয়নি
+  const mgcAvailable = mgc !== null && mgc !== undefined;
+  const groundCoverage = mgcAvailable ? F * mgc / 100 : null;
+  const height = (mgcAvailable && groundCoverage>0) ? Math.round(floorSpace/groundCoverage) : null;
   const totalDU2 = Math.round((F/720) * netDensity);
   const bonusDU = Math.round(totalDU2 * 0.15);
 
   const vals2 = { incTotal, totalFAR2, approvedFAR, floorSpace, groundCoverage, height, totalDU2, bonusDU };
   Object.entries(vals2).forEach(([id,v])=>{
+    if(!mgcAvailable && (id==='groundCoverage' || id==='height')){
+      document.getElementById('out2-'+id).textContent = '১০ কাঠার বেশি — MGC সারণি এখনো যোগ করা হয়নি';
+      return;
+    }
     document.getElementById('out2-'+id).textContent = fmt(v, id==='height'||id==='totalDU2'||id==='bonusDU' ? 0 : 2);
   });
 }
