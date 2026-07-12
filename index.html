@@ -403,12 +403,13 @@
         <button type="button" id="mapBtn" style="margin-top:8px;width:100%;padding:9px;font-family:'Hind Siliguri',sans-serif;font-weight:600;font-size:13px;border:1.5px solid var(--input-border);border-radius:6px;background:#fff;color:var(--ink);cursor:pointer;">🗺️ ব্লক ম্যাপ দেখুন (কোন নম্বর কোথায়)</button>
       </div>
       <div class="field">
-        <label for="useTypeTrigger">ইমারতের উপ-শ্রেণি <span class="unit">(পরিশিষ্ট ৩.৫ — কেন্দ্রীয় ঢাকা)</span></label>
+        <label for="useTypeTrigger">ইমারতের শ্রেণি ও উপ-শ্রেণি</label>
         <button type="button" id="useTypeTrigger" class="block-trigger placeholder">বেছে নিন</button>
         <select id="useType" style="display:none;" aria-hidden="true" tabindex="-1">
           <option value="" selected disabled>বেছে নিন</option>
         </select>
-        <p class="placeholder-hint">A1 থেকে A6 (আবাসিক, কেন্দ্রীয় ঢাকা) — সবগুলো উপ-শ্রেণিই যুক্ত আছে। অন্য বড় ক্যাটেগরি (যেমন B: বাণিজ্যিক, C: শিল্প) এখনো যোগ করা হয়নি।</p>
+        <input type="hidden" id="areaZone" value="">
+        <p class="placeholder-hint">A থেকে K পর্যন্ত সবগুলো ক্যাটেগরি ও উপ-শ্রেণি যুক্ত আছে। "A: আবাসিক"-এর ক্ষেত্রে এলাকা/জোনও বেছে নিতে হবে।</p>
       </div>
       <div class="field">
         <label for="landSize">Land Size <span class="unit">(কাঠা)</span></label>
@@ -549,6 +550,26 @@
   </div>
 </div>
 
+<div id="categoryModal" class="block-modal">
+  <div class="block-modal-panel">
+    <div class="block-modal-head">
+      <strong>ইমারতের শ্রেণি বেছে নিন (A-K)</strong>
+      <button type="button" id="categoryModalCloseBtn" class="block-modal-close">✕</button>
+    </div>
+    <div id="categoryListWrap" class="block-list"></div>
+  </div>
+</div>
+
+<div id="zoneModal" class="block-modal">
+  <div class="block-modal-panel">
+    <div class="block-modal-head">
+      <strong>এলাকা/জোন বেছে নিন</strong>
+      <button type="button" id="zoneModalCloseBtn" class="block-modal-close">✕</button>
+    </div>
+    <div id="zoneListWrap" class="block-list"></div>
+  </div>
+</div>
+
 <div id="useTypeModal" class="block-modal">
   <div class="block-modal-panel">
     <div class="block-modal-head">
@@ -651,13 +672,130 @@ const EXTRA_DU_BONUS = 0.10; // শুধু A3-এর জন্য প্রয
 // ---------- Appendix 3.5 (প্লট ভিত্তিক FAR সূচক) — A: আবাসিক (কেন্দ্রীয় ঢাকা) ----------
 // Road width upper-bound breakpoints in FEET (meter-based categories converted): <8.2, <11.87, <15.75, <19.68, 19.68(6m), 29.52(9m), 39.37(12m), 59(18m), 78.74(24m)+
 const ROAD_WIDTH_BREAKPOINTS = [8.2, 11.87, 15.75, 19.68, 29.52, 39.37, 59, 78.74, Infinity];
-const PLOT_FAR_TABLE = {
-  A1: {label:'একক পরিবার বাড়ি',              values:[1.25,1.5,1.75,2.0,2.5,3.0,3.5,3.75,4.25]},
-  A2: {label:'দুই পরিবারের বাড়ি',              values:[1.25,1.5,1.75,2.0,2.5,3.0,3.5,3.75,4.25]},
-  A3: {label:'ফ্ল্যাট ও এ্যাপার্টমেন্ট বাড়ি',    values:[1.25,1.75,2.0, 2.25,3.25,3.5, 4.0, 4.25,4.75]},
-  A4: {label:'মেস, বোর্ডিং, ডরমিটরি ও হোস্টেল', values:[1.5, 2.0, 2.25,2.5, 3.0, 3.5, 4.0, 4.5, 5.0]},
-  A5: {label:'হোটেল, মোটেল, গেস্ট হাউজ, সার্ভিসড এপার্টমেন্ট', values:[1.5, null,null,null,4.0,4.5,5.0,6.0,7.0]},
-  A6: {label:'সাশ্রয়ী আবাসন',                  values:[1.5, 2.0, 2.25,2.5, 3.0, 3.25,3.75,4.0, 4.25]},
+// রোড উইথ কলাম ৯টা: ১.৮-২.৫মি | ২.৫-৩.৬৭মি | ৩.৬৭-৪.৮৮মি | ৪.৮৮-৬মি | ৬মি | ৯মি | ১২মি | ১৮মি | ২৪মি+
+// NR = None Restricted (কোনো ঊর্ধ্বসীমা নেই)। null মানে ঐ রোড উইথে এই ইমারত-শ্রেণি অনুমোদিত নয়।
+const CATEGORY_TABLE = {
+  A: {
+    label:'আবাসিক',
+    zones: {
+      central: {
+        zoneLabel:'কেন্দ্রীয় ঢাকা, পূর্বাচল, ঝিলমিল',
+        subcats: {
+          A1: {label:'একক পরিবার বাড়ি',              values:[1.25,1.5,1.75,2.0,2.5,3.0,3.5,3.75,4.25]},
+          A2: {label:'দুই পরিবারের বাড়ি',              values:[1.25,1.5,1.75,2.0,2.5,3.0,3.5,3.75,4.25]},
+          A3: {label:'ফ্ল্যাট ও এ্যাপার্টমেন্ট বাড়ি',    values:[1.25,1.75,2.0, 2.25,3.25,3.5, 4.0, 4.25,4.75]},
+          A4: {label:'মেস, বোর্ডিং, ডরমিটরি ও হোস্টেল', values:[1.5, 2.0, 2.25,2.5, 3.0, 3.5, 4.0, 4.5, 5.0]},
+          A5: {label:'হোটেল, মোটেল, গেস্ট হাউজ, সার্ভিসড এপার্টমেন্ট', values:[1.5, null,null,null,4.0,4.5,5.0,6.0,7.0], nr:[8]},
+          A6: {label:'সাশ্রয়ী আবাসন',                  values:[1.5, 2.0, 2.25,2.5, 3.0, 3.25,3.75,4.0, 4.25]},
+        }
+      },
+      other: {
+        zoneLabel:'অন্যান্য এলাকা',
+        subcats: {
+          A1: {label:'একক পরিবার বাড়ি',              values:[1.0, 1.25,1.5, 1.75,2.25,2.75,3.25,3.5, 4.0]},
+          A2: {label:'দুই পরিবারের বাড়ি',              values:[1.0, 1.25,1.5, 1.75,2.25,2.75,3.25,3.5, 4.0]},
+          A3: {label:'ফ্ল্যাট ও এ্যাপার্টমেন্ট বাড়ি',    values:[1.0, 1.25,1.5, 1.75,2.3, 2.8, 3.3, 3.5, 4.0]},
+          A4: {label:'মেস, বোর্ডিং, ডরমিটরি ও হোস্টেল', values:[1.0, 1.5, 1.75,2.0, 2.5, 3.0, 3.5, 4.0, 4.5]},
+          A5: {label:'হোটেল, মোটেল, গেস্ট হাউজ, সার্ভিসড এপার্টমেন্ট', values:[null,null,null,null,3.5,4.0,4.5,5.5,6.5]},
+          A6: {label:'সাশ্রয়ী আবাসন',                  values:[1.5, 1.75,2.0, 2.25,2.75,3.0, 3.5, 3.75,4.0]},
+        }
+      },
+      outer: {
+        zoneLabel:'বহিঃস্থ নগর অঞ্চল (নারায়ণগঞ্জ সিটি কর্পোরেশন, সাভার পৌরসভা ইত্যাদি)',
+        subcats: {
+          A1: {label:'একক পরিবারের বাড়ি',             values:[1.0, 1.25,1.5, 1.75,2.25,2.75,3.25,3.5, 4.0]},
+          A2: {label:'দুই পরিবারের বাড়ি',              values:[1.0, 1.25,1.5, 1.75,2.25,2.75,3.25,3.5, 4.0]},
+          A3: {label:'ফ্ল্যাট ও এ্যাপার্টমেন্ট বাড়ি',    values:[1.25,1.5, 1.75,2.0, 2.5, 3.0, 3.5, 3.75,4.25]},
+          A4: {label:'মেস, বোর্ডিং, ডরমিটরি ও হোস্টেল', values:[1.25,1.75,2.0, 2.25,2.75,3.25,3.75,4.25,4.75]},
+          A5: {label:'হোটেল, মোটেল, গেস্ট হাউজ, সার্ভিসড এপার্টমেন্ট', values:[null,null,null,null,3.75,4.25,4.75,5.75,6.75]},
+          A6: {label:'সাশ্রয়ী আবাসন',                  values:[1.5, 1.75,2.0, 2.25,2.75,3.0, 3.5, 3.75,4.0]},
+        }
+      },
+    }
+  },
+  B: {
+    label:'শিক্ষা প্রতিষ্ঠান',
+    subcats: {
+      B1: {label:'স্কুল ও কলেজ, জাতীয় শিক্ষা প্রতিষ্ঠান (দ্বাদশ শ্রেণি পর্যন্ত)', values:[null,null,null,null,2.5,3.0,3.5,4.5,5.5]},
+      B2: {label:'বিশ্ববিদ্যালয়, মেডিকেল কলেজ, ট্রেনিং একাডেমি (দ্বাদশের উপরে)', values:[null,null,null,null,2.5,3.5,4.0,6.0,7.0], nr:[8]},
+      B3: {label:'প্রি-স্কুল', values:[null,null,null,2.0,2.5,3.0,3.5,4.5,5.5]},
+    }
+  },
+  C: {
+    label:'প্রাতিষ্ঠানিক',
+    subcats: {
+      C1: {label:'শিশু পরিচর্যা', values:[null,null,2.0,2.5,3.0,3.5,4.0,5.0,6.0]},
+      C2: {label:'বয়স্ক পরিচর্যা (শারীরিকভাবে সক্ষম)', values:[null,null,null,2.5,3.0,3.5,4.0,5.0,6.0]},
+      C3: {label:'বয়স্ক পরিচর্যা (শারীরিকভাবে সক্ষম নহে)', values:[null,null,null,null,2.0,3.5,4.0,5.0,6.0]},
+      C4: {label:'শিশুদের সংশোধনাগার, মানসিক ও অন্যান্য সংশোধন কেন্দ্র', values:[null,null,null,null,2.0,3.5,4.0,5.0,6.0], nr:[8]},
+      C5: {label:'বয়স্কদের কারাগার, মানসিক ও অন্যান্য পুনর্বাসন কেন্দ্র', values:[null,null,null,null,2.0,3.5,4.0,5.0,6.0], nr:[8]},
+    }
+  },
+  D: {
+    label:'স্বাস্থ্য-সেবা',
+    subcats: {
+      D1: {label:'সাধারণ স্বাস্থ্য-সেবা (হাসপাতাল, ক্লিনিক, মেডিকেল হাসপাতাল)', values:[null,null,null,null,3.0,4.0,4.5,5.5,6.5], nr:[7,8]},
+      D2: {label:'জরুরি স্বাস্থ্যসেবা (দুর্যোগকালীন ও পরবর্তী জরুরি ব্যবস্থাপনাসহ)', values:[null,null,null,null,null,4.0,4.5,5.5,6.5], nr:[7,8]},
+      D3: {label:'ডেন্টাল চেয়ার, ডায়াগনস্টিক ল্যাব, প্যাথলজি ল্যাব (বেড ব্যতীত)', values:[null,null,null,1.5,2.5,3.0,3.5,4.0,4.5]},
+    }
+  },
+  E: {
+    label:'ব্যবসা',
+    subcats: {
+      E1: {label:'অফিস', values:[null,null,1.5,2.0,3.0,4.0,5.5,6.0,6.5], nr:[7,8]},
+      E2: {label:'গবেষণা ও পরীক্ষাগার (রিসার্চ প্রতিষ্ঠান, জাতীয় স্থাপনা)', values:[null,null,null,null,2.5,3.0,4.0,5.0,6.0]},
+      E3: {label:'নিত্য প্রয়োজনীয় অন্যান্য সেবা (ব্যাংক, পোস্ট অফিস ও সমজাতীয়)', values:[null,null,1.5,2.0,3.0,4.0,5.5,6.0,6.5], nr:[7,8]},
+    }
+  },
+  F: {
+    label:'বাণিজ্যিক',
+    subcats: {
+      F1: {label:'ছোট দোকান ও বাজার (৩০০ বর্গমিটারের কম ক্ষেত্রফল বিশিষ্ট)', values:[null,null,1.0,1.75,2.0,2.25,2.5,2.75,3.0]},
+      F2: {label:'বড় দোকান ও বাজার (৩০০ বর্গমিটারের অধিক ক্ষেত্রফল বিশিষ্ট)', values:[null,null,null,null,2.0,4.0,4.5,5.5,6.5]},
+      F3: {label:'ফিলিং স্টেশন', values:[null,null,null,null,null,1.25,1.5,1.75,2.0]},
+    }
+  },
+  G: {
+    label:'শিল্পকারখানা',
+    subcats: {
+      G1: {label:'কম দূষণকারী, কম বিপজ্জনক কারখানা ও কুটিরশিল্প', values:[null,null,null,null,3.0,4.0,4.5,5.0,5.5]},
+      G2: {label:'সাধারণ দূষণকারী', values:[null,null,null,null,3.0,4.0,4.5,5.0,5.5]},
+    }
+  },
+  H: {
+    label:'গুদাম',
+    subcats: {
+      H1: {label:'কম দায় পদার্থের গুদাম', values:[null,null,null,1.0,2.0,2.5,3.5,4.5,5.0]},
+      H2: {label:'সাধারণ দায় পদার্থের গুদাম', values:[null,null,null,null,1.5,2.0,3.0,4.0,5.0]},
+    }
+  },
+  I: {
+    label:'সমাবেশ',
+    subcats: {
+      I1: {label:'বড় মিলনায়তন (স্থায়ী আসন সংখ্যা ১০০০ বা তদূর্ধ্ব)', values:[null,null,null,null,null,3.5,4.5,5.5,6.5]},
+      I2: {label:'ছোট মিলনায়তন (স্থায়ী আসন সংখ্যা ১০০০ এর কম)', values:[null,null,null,null,2.0,3.0,4.0,5.0,6.0]},
+      I3: {label:'বড় মিলনায়তন (আসন স্থানান্তরযোগ্য নহে, জনসংখ্যা ৫০০ বা তদূর্ধ্ব)', values:[null,null,null,1.5,2.5,3.5,4.5,5.5,6.5]},
+      I4: {label:'ছোট মিলনায়তন (আসন স্থানান্তরযোগ্য নহে, জনসংখ্যা ৫০০ এর কম)', values:[null,null,null,1.5,1.75,2.0,2.25,2.5,2.75]},
+      I5: {label:'ধর্মীয়, ক্রীড়া ও সংস্কৃতি বিষয়ক', values:[null,null,1.5,2.0,3.0,4.0,5.0,6.0,7.0]},
+    }
+  },
+  J: {
+    label:'বিপজ্জনক ব্যবহারের ভবন',
+    subcats: {
+      J1: {label:'বিস্ফোরণ ঘটাইতে পারে এইরূপ ভবন', values:[null,null,null,null,null,2.0,2.5,3.25,4.25]},
+      J2: {label:'রাসায়নিক ধরনের বিপজ্জনক ভবন', values:[null,null,null,null,null,null,null,3.0,4.0]},
+      J3: {label:'জীবাণু ধরনের বিপজ্জনক ভবন (Biological hazard building)', values:[null,null,null,null,null,null,null,3.0,4.0]},
+      J4: {label:'বিকিরণ ধরনের বিপজ্জনক ভবন (Radiation hazard building)', values:[null,null,null,null,null,null,null,3.0,4.0]},
+    }
+  },
+  K: {
+    label:'বিবিধ',
+    subcats: {
+      K1: {label:'বাণিজ্যিক পার্কিং', values:[null,null,null,null,3.5,4.0,5.5,6.0,6.5]},
+      K2: {label:'ব্যক্তি মালিকানাধীন পার্কিং', values:[null,null,1.0,1.5,3.5,4.0,5.5,6.0,6.5]},
+      K3: {label:'মেরামত কারখানা', values:[null,null,null,null,2.0,2.25,2.5,3.0,4.0]},
+    }
+  },
 };
 
 const blockSel = document.getElementById('block');
@@ -734,58 +872,133 @@ blockListWrap.addEventListener('click', (e)=>{
 });
 
 const useTypeSel = document.getElementById('useType');
-Object.entries(PLOT_FAR_TABLE).forEach(([code,info])=>{
-  const opt = document.createElement('option');
-  opt.value = code; opt.textContent = `${code} — ${info.label}`;
-  useTypeSel.appendChild(opt);
-});
+const areaZoneInput = document.getElementById('areaZone');
 
-// ---------- Custom useType picker ----------
+// ---------- Helpers to resolve category/zone/subcat ----------
+function resolveSubcatTable(code, zone){
+  if(!code) return null;
+  const cat = code[0];
+  const catInfo = CATEGORY_TABLE[cat];
+  if(!catInfo) return null;
+  if(catInfo.zones){
+    const zoneInfo = catInfo.zones[zone];
+    if(!zoneInfo) return null;
+    return zoneInfo.subcats[code];
+  }
+  return catInfo.subcats[code];
+}
+
+function plotFARByRoadWidth(D, useType, zone){
+  const table = resolveSubcatTable(useType, zone);
+  if(!table) return null;
+  let idx = ROAD_WIDTH_BREAKPOINTS.length;
+  for(let i=0;i<ROAD_WIDTH_BREAKPOINTS.length;i++){
+    if(D < ROAD_WIDTH_BREAKPOINTS[i]){ idx = i; break; }
+  }
+  const v = idx < table.values.length ? table.values[idx] : table.values[table.values.length-1];
+  return v;
+}
+
+// ---------- 3-level custom picker: category (A-K) → zone (শুধু A) → উপ-শ্রেণি ----------
 const useTypeTrigger = document.getElementById('useTypeTrigger');
+
+const categoryModal = document.getElementById('categoryModal');
+const categoryModalCloseBtn = document.getElementById('categoryModalCloseBtn');
+const categoryListWrap = document.getElementById('categoryListWrap');
+
+const zoneModal = document.getElementById('zoneModal');
+const zoneModalCloseBtn = document.getElementById('zoneModalCloseBtn');
+const zoneListWrap = document.getElementById('zoneListWrap');
+
 const useTypeModal = document.getElementById('useTypeModal');
 const useTypeModalCloseBtn = document.getElementById('useTypeModalCloseBtn');
 const useTypeListWrap = document.getElementById('useTypeListWrap');
 
-function renderUseTypeList(){
-  useTypeListWrap.innerHTML = Object.entries(PLOT_FAR_TABLE).map(([code,info])=>{
+let pendingCategory = null;
+let pendingZone = null;
+
+function closeAllUseTypeModals(){
+  categoryModal.classList.remove('open');
+  zoneModal.classList.remove('open');
+  useTypeModal.classList.remove('open');
+}
+
+function renderCategoryList(){
+  categoryListWrap.innerHTML = Object.entries(CATEGORY_TABLE).map(([code,info])=>{
     return `<button type="button" class="block-item" data-code="${code}">
       <div class="b-name">${code} — ${info.label}</div>
     </button>`;
   }).join('');
 }
-
-function openUseTypeModal(){
-  renderUseTypeList();
-  useTypeModal.classList.add('open');
+function openCategoryModal(){
+  renderCategoryList();
+  categoryModal.classList.add('open');
 }
-function closeUseTypeModal(){
-  useTypeModal.classList.remove('open');
-}
+useTypeTrigger.addEventListener('click', openCategoryModal);
+categoryModalCloseBtn.addEventListener('click', ()=>categoryModal.classList.remove('open'));
+categoryModal.addEventListener('click', (e)=>{ if(e.target.id==='categoryModal') categoryModal.classList.remove('open'); });
 
-useTypeTrigger.addEventListener('click', openUseTypeModal);
-useTypeModalCloseBtn.addEventListener('click', closeUseTypeModal);
-useTypeModal.addEventListener('click', (e)=>{
-  if(e.target.id === 'useTypeModal') closeUseTypeModal();
+categoryListWrap.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.block-item');
+  if(!btn) return;
+  pendingCategory = btn.dataset.code;
+  pendingZone = null; // আগের ক্যাটেগরির জোন যেন ভুল করে নতুন ক্যাটেগরিতে না বসে
+  categoryModal.classList.remove('open');
+  const catInfo = CATEGORY_TABLE[pendingCategory];
+  if(catInfo.zones){
+    renderZoneList();
+    zoneModal.classList.add('open');
+  } else {
+    renderSubcatList(pendingCategory, null);
+    useTypeModal.classList.add('open');
+  }
 });
+
+function renderZoneList(){
+  const catInfo = CATEGORY_TABLE[pendingCategory];
+  zoneListWrap.innerHTML = Object.entries(catInfo.zones).map(([zoneCode,zInfo])=>{
+    return `<button type="button" class="block-item" data-zone="${zoneCode}">
+      <div class="b-name">${zInfo.zoneLabel}</div>
+    </button>`;
+  }).join('');
+}
+zoneModalCloseBtn.addEventListener('click', ()=>zoneModal.classList.remove('open'));
+zoneModal.addEventListener('click', (e)=>{ if(e.target.id==='zoneModal') zoneModal.classList.remove('open'); });
+zoneListWrap.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.block-item');
+  if(!btn) return;
+  pendingZone = btn.dataset.zone;
+  zoneModal.classList.remove('open');
+  renderSubcatList(pendingCategory, pendingZone);
+  useTypeModal.classList.add('open');
+});
+
+function renderSubcatList(catCode, zoneCode){
+  const catInfo = CATEGORY_TABLE[catCode];
+  const subcats = catInfo.zones ? catInfo.zones[zoneCode].subcats : catInfo.subcats;
+  useTypeListWrap.innerHTML = Object.entries(subcats).map(([code,info])=>{
+    return `<button type="button" class="block-item" data-code="${code}">
+      <div class="b-name">${code} — ${info.label}</div>
+    </button>`;
+  }).join('');
+}
+useTypeModalCloseBtn.addEventListener('click', ()=>useTypeModal.classList.remove('open'));
+useTypeModal.addEventListener('click', (e)=>{ if(e.target.id==='useTypeModal') useTypeModal.classList.remove('open'); });
 useTypeListWrap.addEventListener('click', (e)=>{
   const btn = e.target.closest('.block-item');
   if(!btn) return;
   const code = btn.dataset.code;
   useTypeSel.value = code;
+  areaZoneInput.value = pendingZone || '';
   useTypeSel.dispatchEvent(new Event('change', {bubbles:true}));
-  useTypeTrigger.textContent = `${code} — ${PLOT_FAR_TABLE[code].label}`;
+  const table = resolveSubcatTable(code, pendingZone);
+  const catInfo = CATEGORY_TABLE[pendingCategory];
+  const zoneSuffix = catInfo.zones ? ` (${catInfo.zones[pendingZone].zoneLabel})` : '';
+  useTypeTrigger.textContent = `${code} — ${table.label}${zoneSuffix}`;
   useTypeTrigger.classList.remove('placeholder');
-  closeUseTypeModal();
+  closeAllUseTypeModals();
 });
 
-function plotFARByRoadWidth(D, useType){
-  const table = PLOT_FAR_TABLE[useType];
-  if(!table) return null;
-  for(let i=0;i<ROAD_WIDTH_BREAKPOINTS.length;i++){
-    if(D < ROAD_WIDTH_BREAKPOINTS[i]) return table.values[i];
-  }
-  return table.values[table.values.length-1];
-}
 function incentiveFAR(C){
   if(C<3) return 0;
   if(C<6) return 0.2;
@@ -872,7 +1085,8 @@ function compute(){
   }
 
   const F = 720*C; // land area sft
-  const I = plotFARByRoadWidth(D, UT); // পরিশিষ্ট ৩.৫ অনুযায়ী প্লট ভিত্তিক FAR
+  const AZ = document.getElementById('areaZone').value;
+  const I = plotFARByRoadWidth(D, UT, AZ); // সারণি অনুযায়ী প্লট ভিত্তিক FAR (শ্রেণি+জোন+উপ-শ্রেণি)
 
   // ব্লক-ভিত্তিক তথ্য (DU/কাঠা, গড় ইউনিট আয়তন) — road width নির্বিশেষে দেখানো হবে
   document.getElementById('out-duPerKatha').textContent = fmt(BLOCKS[A].du);
@@ -888,8 +1102,10 @@ function compute(){
   }
 
   const L = BLOCKS[A].far;
-  const M = Math.min(I,L);
+  let M = Math.min(I,L);
   const N = Math.max(I,L,M);
+  // ভিত্তি FAR ও সর্বোচ্চ FAR-এর পার্থক্য ০.১ বা এর কম হলে সর্বোচ্চ FAR প্রযোজ্য হবে
+  if(N-M <= 0.1 + 1e-9) M = N;
   const O = incentiveFAR(C);
   const P = (M+O>N) ? N : M+O;
   const Q = BLOCKS[A].du;
