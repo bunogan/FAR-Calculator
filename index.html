@@ -895,7 +895,7 @@ function compute(){
   const Q = BLOCKS[A].du;
   const R = C*Q;
   const S = (UT === 'A3') ? R*EXTRA_DU_BONUS : 0; // বোনাস ইউনিট শুধু A3-এর জন্য, সর্বোচ্চ ১০%
-  const T = R+S;
+  const T = (UT === 'A3') ? R+S : null; // A3 ব্যতীত অন্যান্য ক্ষেত্রে জনঘনত্ব নিরূপণে DU সংখ্যা প্রযোজ্য নয়
   const U = P*F;
   const V = mgcPercent(C, UT);
   const W = V===null ? null : F*V/100;
@@ -912,6 +912,10 @@ function compute(){
     incFAR:O, totalFAR:P, totalDU:T, floorArea:U, coveredArea:X, floor1, floor2
   };
   Object.entries(vals).forEach(([id,v])=>{
+    if(id==='totalDU' && UT!=='A3'){
+      document.getElementById('out-'+id).textContent = 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)';
+      return;
+    }
     document.getElementById('out-'+id).textContent = fmt(v);
   });
 
@@ -1031,11 +1035,16 @@ function computeStep2(){
   const mgcAvailable = mgc !== null && mgc !== undefined;
   const groundCoverage = mgcAvailable ? F * mgc / 100 : null;
   const height = (mgcAvailable && groundCoverage>0) ? Math.round(floorSpace/groundCoverage) : null;
-  const totalDU2 = Math.round((F/720) * netDensity);
-  const bonusDU = (far1.useType === 'A3') ? Math.round(totalDU2 * 0.10) : 0;
+  const isA3 = far1.useType === 'A3';
+  const totalDU2 = isA3 ? Math.round((F/720) * netDensity) : null; // A3 ব্যতীত অন্যান্য ক্ষেত্রে DU সংখ্যা প্রযোজ্য নয়
+  const bonusDU = isA3 ? Math.round(totalDU2 * 0.10) : null;
 
   const vals2 = { incTotal, totalFAR2, approvedFAR, floorSpace, groundCoverage, height, totalDU2, bonusDU };
   Object.entries(vals2).forEach(([id,v])=>{
+    if(!isA3 && (id==='totalDU2' || id==='bonusDU')){
+      document.getElementById('out2-'+id).textContent = 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)';
+      return;
+    }
     if(!mgcAvailable && (id==='groundCoverage' || id==='height')){
       document.getElementById('out2-'+id).textContent = '১০ কাঠার বেশি — MGC সারণি এখনো যোগ করা হয়নি';
       return;
