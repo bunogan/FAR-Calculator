@@ -430,6 +430,25 @@
     </div>
     <div id="emptyMsg" class="empty-msg">সবগুলো ইনপুট পূরণ করলে ফলাফল দেখা যাবে।</div>
     <div class="out-grid" id="outGrid"></div>
+    <div class="out-grid" id="extraOutGrid">
+      <div class="out-row">
+        <div class="k">Unit Area (sft)</div>
+        <div class="v" id="out-unitArea">—</div>
+      </div>
+      <div class="out-row">
+        <div class="k">Unit / Floor</div>
+        <div class="v"><input type="number" id="unitsPerFloor" value="1" min="1" step="1" style="width:100%;padding:6px 8px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:right;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);"></div>
+      </div>
+      <div class="out-row">
+        <div class="k">Plinth Area (sft)</div>
+        <div class="v" id="out-plinthArea">—</div>
+      </div>
+      <div class="out-row highlight">
+        <div class="k">Building Height (তলা)</div>
+        <div class="v" id="out-buildingHeight">—</div>
+      </div>
+    </div>
+    <p class="placeholder-hint" id="plinthWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Plinth Area, Usable Covered Area/Floor-এর চেয়ে বেশি হয়ে গেছে — Plinth Area অবশ্যই Usable Covered Area/Floor-এর সমান বা কম হতে হবে। Unit/Floor সংখ্যা কমিয়ে দেখুন।</p>
     <p class="lock-note">🔒 ফলাফল স্বয়ংক্রিয় — সরাসরি এডিট করা যাবে না</p>
   </div>
 
@@ -1031,7 +1050,7 @@ function mgcPercent(C, UT){
   return 40;
 }
 
-const fields = ['block','useType','landSize','roadWidth'].map(id=>document.getElementById(id));
+const fields = ['block','useType','landSize','roadWidth','unitsPerFloor'].map(id=>document.getElementById(id));
 fields.forEach(f=>f.addEventListener('input', compute));
 fields.forEach(f=>f.addEventListener('change', compute));
 
@@ -1048,7 +1067,6 @@ const outputRows = [
   ['floorArea','Total Floor Area (sft)'],
   ['coveredArea','Usable Covered Area/Floor (sft)'],
   ['floor1','Floor Count — Layout 1 (1 unit/floor)'],
-  ['floor2','Floor Count — Layout 2 (2 units/floor)'],
 ];
 const outGrid = document.getElementById('outGrid');
 outputRows.forEach(([id,label,hl])=>{
@@ -1089,6 +1107,10 @@ function compute(){
 
   if(!ready){
     outputRows.forEach(([id])=>document.getElementById('out-'+id).textContent='—');
+    document.getElementById('out-unitArea').textContent = '—';
+    document.getElementById('out-plinthArea').textContent = '—';
+    document.getElementById('plinthWarning').style.display = 'none';
+    document.getElementById('out-buildingHeight').textContent = '—';
     window.__far1 = null;
     computeStep2();
     return;
@@ -1104,8 +1126,12 @@ function compute(){
 
   if(I===null){
     document.getElementById('out-plotFAR').textContent = 'প্রযোজ্য নয় (এই রোড উইথে অনুমোদিত নয়)';
-    ['areaFAR','baseFAR','maxFAR','incFAR','totalFAR','totalDU','floorArea','coveredArea','floor1','floor2']
+    ['areaFAR','baseFAR','maxFAR','incFAR','totalFAR','totalDU','floorArea','coveredArea','floor1']
       .forEach(id=>document.getElementById('out-'+id).textContent='—');
+    document.getElementById('out-unitArea').textContent = '—';
+    document.getElementById('out-plinthArea').textContent = '—';
+    document.getElementById('plinthWarning').style.display = 'none';
+    document.getElementById('out-buildingHeight').textContent = '—';
     window.__far1 = null;
     computeStep2();
     return;
@@ -1127,15 +1153,27 @@ function compute(){
   const W = V===null ? null : F*V/100;
   const X = W;
   const floor1 = (X && X>0) ? U/X : null;
-  // Layout 2 (2 units/floor): average unit size = Total Floor Area / Total DU;
-  // floor count = Total Floor Area / (average unit size * 2) = Total DU / 2
-  const avgUnitSize = (T && T>0) ? U/T : null;
-  const floor2 = (avgUnitSize && avgUnitSize>0) ? U/(avgUnitSize*2) : null;
+
+  // ---- Unit Area → Unit/Floor (ইনপুট) → Plinth Area → Building Height (শুধু A3) ----
+  const unitArea = (R && R>0) ? U/R : null; // Total Floor Area / (Land Size × DU/কাঠা)
+  const unitsPerFloorInput = document.getElementById('unitsPerFloor');
+  const unitsPerFloor = parseFloat(unitsPerFloorInput.value) || 0;
+  const plinthArea = (unitArea && unitsPerFloor>0) ? unitArea*unitsPerFloor : null;
+  const buildingHeight = (UT==='A3' && plinthArea && plinthArea>0) ? U/plinthArea : null;
+
+  document.getElementById('out-unitArea').textContent = fmt(unitArea);
+  const plinthAreaEl = document.getElementById('out-plinthArea');
+  plinthAreaEl.textContent = fmt(plinthArea);
+  const plinthWarning = document.getElementById('plinthWarning');
+  const plinthExceeds = plinthArea!==null && X && X>0 && plinthArea > X;
+  plinthWarning.style.display = plinthExceeds ? 'block' : 'none';
+  plinthAreaEl.style.color = plinthExceeds ? '#c1440e' : '';
+  document.getElementById('out-buildingHeight').textContent = (UT!=='A3') ? 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)' : fmt(buildingHeight);
 
   const vals = {
     duPerKatha:Q, avgUnitArea:BLOCKS[A].avgArea,
     plotFAR:I, areaFAR:L, baseFAR:M, maxFAR:N,
-    incFAR:O, totalFAR:P, totalDU:T, floorArea:U, coveredArea:X, floor1, floor2
+    incFAR:O, totalFAR:P, totalDU:T, floorArea:U, coveredArea:X, floor1
   };
   Object.entries(vals).forEach(([id,v])=>{
     if(id==='totalDU' && UT!=='A3'){
