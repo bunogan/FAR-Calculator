@@ -408,7 +408,7 @@
         <select id="useType" style="display:none;" aria-hidden="true" tabindex="-1">
           <option value="" selected disabled>বেছে নিন</option>
         </select>
-        <p class="placeholder-hint">বর্তমানে শুধু "A: আবাসিক (কেন্দ্রীয় ঢাকা)" জোনের সারণি যুক্ত আছে।</p>
+        <p class="placeholder-hint">A1 থেকে A6 (আবাসিক, কেন্দ্রীয় ঢাকা) — সবগুলো উপ-শ্রেণিই যুক্ত আছে। অন্য বড় ক্যাটেগরি (যেমন B: বাণিজ্যিক, C: শিল্প) এখনো যোগ করা হয়নি।</p>
       </div>
       <div class="field">
         <label for="landSize">Land Size <span class="unit">(কাঠা)</span></label>
@@ -519,6 +519,7 @@
     <div id="emptyMsg2" class="empty-msg">Base FAR, Max FAR ও নেট জনঘনত্ব লাগবে ফলাফলের জন্য।</div>
     <div class="out-grid" id="outGrid2"></div>
     <p class="lock-note">🔒 ফলাফল স্বয়ংক্রিয় — সরাসরি এডিট করা যাবে না</p>
+    <p class="placeholder-hint" style="padding:0 16px 12px;">শর্ত: বোনাস ইউনিটের জন্য প্রয়োজনীয় মেঝের ক্ষেত্রফল কোনোভাবেই "Floor Space"-এর বেশি হবে না — এই ক্যালকুলেটর প্রতিটা ইউনিটের প্রকৃত আয়তন জানে না বলে এটা স্বয়ংক্রিয়ভাবে যাচাই করা যায় না, নকশার সময় নিজে মিলিয়ে নিতে হবে।</p>
   </div>
 
 </main>
@@ -645,7 +646,7 @@ const BLOCKS = {
   67: {name:'ডেমরা, কোনাপাড়া',                       far:3.2, du:1.8, avgArea:1280, area:'DSCC-৬৩ (অংশ), ৬৪ (অংশ), ৬৯, ৭০, ৭৩-৭৫ (অংশ)'},
   68: {name:'সুবাড্ডা, আরাকুল, বেয়ারা',               far:2.7, du:2.1, avgArea:930, area:'সুবাড্ডা (অংশ), কন্ডা (অংশ), তেঘেরিয়া (অংশ) ইউনিয়ন'},
 };
-const EXTRA_DU_BONUS = 0.15;
+const EXTRA_DU_BONUS = 0.10; // শুধু A3-এর জন্য প্রযোজ্য (সর্বোচ্চ ১০%)
 
 // ---------- Appendix 3.5 (প্লট ভিত্তিক FAR সূচক) — A: আবাসিক (কেন্দ্রীয় ঢাকা) ----------
 // Road width upper-bound breakpoints in FEET (meter-based categories converted): <8.2, <11.87, <15.75, <19.68, 19.68(6m), 29.52(9m), 39.37(12m), 59(18m), 78.74(24m)+
@@ -893,7 +894,7 @@ function compute(){
   const P = (M+O>N) ? N : M+O;
   const Q = BLOCKS[A].du;
   const R = C*Q;
-  const S = R*EXTRA_DU_BONUS;
+  const S = (UT === 'A3') ? R*EXTRA_DU_BONUS : 0; // বোনাস ইউনিট শুধু A3-এর জন্য, সর্বোচ্চ ১০%
   const T = R+S;
   const U = P*F;
   const V = mgcPercent(C, UT);
@@ -915,7 +916,7 @@ function compute(){
   });
 
   // expose for step 4-8 module (Appendix 3.7 / সারণি ৩.২৮)
-  window.__far1 = { F, baseFAR:M, maxFAR:N, mgc:V, landSize:C, roadWidth:D, netDensity:BLOCKS[A].du };
+  window.__far1 = { F, baseFAR:M, maxFAR:N, mgc:V, landSize:C, roadWidth:D, netDensity:BLOCKS[A].du, useType:UT };
   computeStep2();
 }
 
@@ -928,7 +929,7 @@ const outputRows2 = [
   ['groundCoverage','ভূমি আচ্ছাদন (Ground Coverage, বর্গফুট)'],
   ['height','সর্বোচ্চ তলা সংখ্যা (Height)'],
   ['totalDU2','প্রাপ্ত মোট ডুয়েলিং ইউনিট'],
-  ['bonusDU','বোনাস ইউনিট (A3-এর ১৫% পর্যন্ত)'],
+  ['bonusDU','বোনাস ইউনিট (শুধু A3, সর্বোচ্চ ১০%)'],
 ];
 const outGrid2 = document.getElementById('outGrid2');
 outputRows2.forEach(([id,label,hl])=>{
@@ -1031,7 +1032,7 @@ function computeStep2(){
   const groundCoverage = mgcAvailable ? F * mgc / 100 : null;
   const height = (mgcAvailable && groundCoverage>0) ? Math.round(floorSpace/groundCoverage) : null;
   const totalDU2 = Math.round((F/720) * netDensity);
-  const bonusDU = Math.round(totalDU2 * 0.15);
+  const bonusDU = (far1.useType === 'A3') ? Math.round(totalDU2 * 0.10) : 0;
 
   const vals2 = { incTotal, totalFAR2, approvedFAR, floorSpace, groundCoverage, height, totalDU2, bonusDU };
   Object.entries(vals2).forEach(([id,v])=>{
