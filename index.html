@@ -872,6 +872,16 @@ blockListWrap.addEventListener('click', (e)=>{
 });
 
 const useTypeSel = document.getElementById('useType');
+// হিডেন <select>-এ প্রতিটা সাব-ক্যাটেগরি কোডের জন্য <option> বসানো দরকার,
+// নইলে JS দিয়ে .value = code সেট করলে ব্রাউজার চুপচাপ উপেক্ষা করে (কোনো ম্যাচিং option না থাকলে)
+Object.entries(CATEGORY_TABLE).forEach(([catCode, catInfo])=>{
+  const subcatSource = catInfo.zones ? catInfo.zones[Object.keys(catInfo.zones)[0]].subcats : catInfo.subcats;
+  Object.keys(subcatSource).forEach(code=>{
+    const opt = document.createElement('option');
+    opt.value = code;
+    useTypeSel.appendChild(opt);
+  });
+});
 const areaZoneInput = document.getElementById('areaZone');
 
 // ---------- Helpers to resolve category/zone/subcat ----------
