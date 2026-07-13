@@ -437,7 +437,13 @@
       </div>
       <div class="out-row">
         <div class="k">Unit / Floor</div>
-        <div class="v"><input type="number" id="unitsPerFloor" value="1" min="1" step="1" style="width:100%;padding:6px 8px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:right;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);"></div>
+        <div class="v">
+          <div style="display:flex;align-items:stretch;gap:4px;">
+            <button type="button" id="unitsPerFloorMinus" style="flex:none;width:32px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">−</button>
+            <input type="number" id="unitsPerFloor" value="1" min="1" step="1" style="width:100%;padding:6px 4px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:center;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
+            <button type="button" id="unitsPerFloorPlus" style="flex:none;width:32px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">+</button>
+          </div>
+        </div>
       </div>
       <div class="out-row">
         <div class="k">Plinth Area (sft)</div>
@@ -1053,6 +1059,19 @@ function mgcPercent(C, UT){
 const fields = ['block','useType','landSize','roadWidth','unitsPerFloor'].map(id=>document.getElementById(id));
 fields.forEach(f=>f.addEventListener('input', compute));
 fields.forEach(f=>f.addEventListener('change', compute));
+
+// মোবাইলে নেটিভ number spinner প্রায়ই দেখা যায় না বলে নিজস্ব -/+ বাটন
+const unitsPerFloorEl = document.getElementById('unitsPerFloor');
+document.getElementById('unitsPerFloorMinus').addEventListener('click', ()=>{
+  const cur = parseInt(unitsPerFloorEl.value) || 1;
+  unitsPerFloorEl.value = Math.max(1, cur-1);
+  compute();
+});
+document.getElementById('unitsPerFloorPlus').addEventListener('click', ()=>{
+  const cur = parseInt(unitsPerFloorEl.value) || 1;
+  unitsPerFloorEl.value = cur+1;
+  compute();
+});
 
 const outputRows = [
   ['duPerKatha','DU/কাঠা (ব্লক অনুযায়ী)'],
