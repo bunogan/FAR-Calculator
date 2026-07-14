@@ -432,8 +432,22 @@
     <div class="out-grid" id="outGrid"></div>
     <div class="out-grid" id="extraOutGrid">
       <div class="out-row">
-        <div class="k">Unit Area (sft)</div>
-        <div class="v" id="out-unitArea">—</div>
+        <div class="k">প্রস্তাবিত কভারেজ এরিয়া (sft) <span class="unit">(এডিট করা যাবে)</span></div>
+        <div class="v">
+          <div style="display:flex;align-items:stretch;gap:4px;">
+            <input type="number" id="proposedCoverageInput" step="1" min="1" style="width:100%;padding:6px 8px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:right;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
+            <button type="button" id="proposedCoverageResetBtn" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:32px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
+          </div>
+        </div>
+      </div>
+      <div class="out-row">
+        <div class="k">Unit Area (sft) <span class="unit">(এডিট করা যাবে)</span></div>
+        <div class="v">
+          <div style="display:flex;align-items:stretch;gap:4px;">
+            <input type="number" id="unitAreaInput" step="1" min="1" style="width:100%;padding:6px 8px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:right;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
+            <button type="button" id="unitAreaResetBtn" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:32px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
+          </div>
+        </div>
       </div>
       <div class="out-row">
         <div class="k">Unit / Floor</div>
@@ -451,10 +465,22 @@
       </div>
       <div class="out-row highlight">
         <div class="k">Building Height (তলা)</div>
-        <div class="v" id="out-buildingHeight">—</div>
+        <div class="v">
+          <div style="display:flex;align-items:stretch;gap:4px;">
+            <input type="number" id="buildingHeightInput" step="1" min="1" style="width:100%;padding:6px 8px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:right;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
+            <button type="button" id="buildingHeightResetBtn" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:32px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
+          </div>
+        </div>
+      </div>
+      <div class="out-row">
+        <div class="k">অব্যবহৃত ফ্লোর এরিয়া (sft)</div>
+        <div class="v" id="out-unusedFloorArea">—</div>
       </div>
     </div>
+    <p class="placeholder-hint" id="proposedCoverageWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ প্রস্তাবিত কভারেজ এরিয়া, Usable Covered Area/Floor-এর চেয়ে বেশি হয়ে গেছে — এটা অবশ্যই Usable Covered Area/Floor-এর সমান বা কম হতে হবে।</p>
     <p class="placeholder-hint" id="plinthWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Plinth Area, Usable Covered Area/Floor-এর চেয়ে বেশি হয়ে গেছে — Plinth Area অবশ্যই Usable Covered Area/Floor-এর সমান বা কম হতে হবে। Unit/Floor সংখ্যা কমিয়ে দেখুন।</p>
+    <p class="placeholder-hint" id="duExceedWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ মোট ইউনিট সংখ্যা (Unit/Floor × Building Height) Total Dwelling Unit (DU)-এর সীমা ছাড়িয়ে যাচ্ছে — Building Height কমান, অথবা ↺ চেপে স্বয়ংক্রিয় মানে ফিরে যান।</p>
+    <p class="placeholder-hint" id="floorAreaExceedWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Building Height বাড়ানোর ফলে ব্যবহৃত ফ্লোর এরিয়া Total Floor Area-এর চেয়ে বেশি হয়ে যাচ্ছে — এটা অনুমোদিত FAR ছাড়িয়ে যাবে। Building Height কমান।</p>
     <p class="lock-note">🔒 ফলাফল স্বয়ংক্রিয় — সরাসরি এডিট করা যাবে না</p>
   </div>
 
@@ -710,7 +736,7 @@ const CATEGORY_TABLE = {
           A2: {label:'দুই পরিবারের বাড়ি',              values:[1.25,1.5,1.75,2.0,2.5,3.0,3.5,3.75,4.25]},
           A3: {label:'ফ্ল্যাট ও এ্যাপার্টমেন্ট বাড়ি',    values:[1.25,1.75,2.0, 2.25,3.25,3.5, 4.0, 4.25,4.75]},
           A4: {label:'মেস, বোর্ডিং, ডরমিটরি ও হোস্টেল', values:[1.5, 2.0, 2.25,2.5, 3.0, 3.5, 4.0, 4.5, 5.0]},
-          A5: {label:'হোটেল, মোটেল, গেস্ট হাউজ, সার্ভিসড এপার্টমেন্ট', values:[1.5, null,null,null,4.0,4.5,5.0,6.0,7.0], nr:[8]},
+          A5: {label:'হোটেল, মোটেল, গেস্ট হাউজ, সার্ভিসড এপার্টমেন্ট', values:[null,null,null,null,4.0,4.5,5.0,6.0,7.0], nr:[8]},
           A6: {label:'সাশ্রয়ী আবাসন',                  values:[1.5, 2.0, 2.25,2.5, 3.0, 3.25,3.75,4.0, 4.25]},
         }
       },
@@ -926,12 +952,35 @@ function resolveSubcatTable(code, zone){
 function plotFARByRoadWidth(D, useType, zone){
   const table = resolveSubcatTable(useType, zone);
   if(!table) return null;
-  let idx = ROAD_WIDTH_BREAKPOINTS.length;
-  for(let i=0;i<ROAD_WIDTH_BREAKPOINTS.length;i++){
-    if(D < ROAD_WIDTH_BREAKPOINTS[i]){ idx = i; break; }
+  const values = table.values;
+  const BP = ROAD_WIDTH_BREAKPOINTS; // [8.2, 11.87, 15.75, 19.68, 29.52, 39.37, 59, 78.74, Infinity]
+
+  // কলাম ০-৩ (১.৮মি থেকে ৪.৮৮মি এর কম — প্রকৃত রেঞ্জ হিসেবে সংজ্ঞায়িত): সরাসরি ধাপ-ভিত্তিক লুকআপ
+  if(D < BP[3]){
+    let idx = 3;
+    for(let i=0;i<4;i++){
+      if(D < BP[i]){ idx = i; break; }
+    }
+    return values[idx];
   }
-  const v = idx < table.values.length ? table.values[idx] : table.values[table.values.length-1];
-  return v;
+
+  // কলাম ৪-৮ (৬মি, ৯মি, ১২মি, ১৮মি, ২৪মি+ — নির্দিষ্ট বিন্দু/ধাপ):
+  // বিদ্যমান রাস্তা কোনো ধাপের চেয়ে প্রশস্ত হলে, পরবর্তী ধাপের FAR পর্যন্ত সমানুপাতিক হারে বৃদ্ধি পাবে (ধারা ৬)
+  const pointBP = [BP[3], BP[4], BP[5], BP[6], BP[7]]; // 19.68, 29.52, 39.37, 59, 78.74 ফুট
+  const pointIdx = [4,5,6,7,8];
+
+  if(D >= pointBP[4]) return values[8]; // ২৪মি বা তদূর্ধ্ব — সর্বোচ্চ ধাপ, পরবর্তী কোনো ধাপ নেই
+
+  for(let i=0;i<4;i++){
+    const lo = pointBP[i], hi = pointBP[i+1];
+    if(D >= lo && D < hi){
+      const vLo = values[pointIdx[i]], vHi = values[pointIdx[i+1]];
+      if(vLo===null || vHi===null) return null;
+      const fraction = (D-lo)/(hi-lo);
+      return vLo + fraction*(vHi-vLo);
+    }
+  }
+  return values[8]; // নিরাপত্তার জন্য fallback
 }
 
 // ---------- 3-level custom picker: category (A-K) → zone (শুধু A) → উপ-শ্রেণি ----------
@@ -1045,6 +1094,9 @@ function incentiveFAR(C){
 // সারণি ৩ (বাংলাদেশ গেজেট, অতিরিক্ত, ডিসেম্বর ১৪, ২০২৫) — সর্বোচ্চ ভূমি আচ্ছাদন (MGC)
 function mgcPercent(C, UT){
   if(UT === 'A6') return 75; // A6: সাশ্রয়ী আবাসন — যেকোনো প্লটের ক্ষেত্রে বিশেষ হার
+  if(UT === 'B1' || UT === 'B2') return 45; // B1/B2: স্কুল-কলেজ, বিশ্ববিদ্যালয়/মেডিকেল কলেজ — নির্দিষ্ট হার
+  if(UT && UT[0] === 'J') return 30; // J: বিপজ্জনক ব্যবহারের ভবন — জমির আয়তন নির্বিশেষে নির্দিষ্ট হার
+  if(UT && UT[0] === 'G' && C>10) return 60; // G: শিল্পকারখানা — ১০ কাঠার বেশি জমিতে নির্দিষ্ট হার
   if(C<=2) return 70;
   if(C<=3) return 67.5;
   if(C<=4) return 65;
@@ -1056,7 +1108,7 @@ function mgcPercent(C, UT){
   return 40;
 }
 
-const fields = ['block','useType','landSize','roadWidth','unitsPerFloor'].map(id=>document.getElementById(id));
+const fields = ['block','useType','landSize','roadWidth','unitsPerFloor','unitAreaInput','buildingHeightInput','proposedCoverageInput'].map(id=>document.getElementById(id));
 fields.forEach(f=>f.addEventListener('input', compute));
 fields.forEach(f=>f.addEventListener('change', compute));
 
@@ -1073,6 +1125,30 @@ document.getElementById('unitsPerFloorPlus').addEventListener('click', ()=>{
   compute();
 });
 
+// Unit Area ম্যানুয়ালি এডিট করলে সেটা মনে রাখা হয় (স্বয়ংক্রিয় মান আর ওভাররাইট করবে না), যতক্ষণ না ↺ চাপা হয়
+const unitAreaInputEl = document.getElementById('unitAreaInput');
+unitAreaInputEl.addEventListener('input', ()=>{ unitAreaInputEl.dataset.touched = '1'; });
+document.getElementById('unitAreaResetBtn').addEventListener('click', ()=>{
+  unitAreaInputEl.dataset.touched = '';
+  compute();
+});
+
+// প্রস্তাবিত কভারেজ এরিয়া ম্যানুয়ালি এডিট করলে সেটাও মনে রাখা হয়, যতক্ষণ না ↺ চাপা হয়
+const proposedCoverageInputEl = document.getElementById('proposedCoverageInput');
+proposedCoverageInputEl.addEventListener('input', ()=>{ proposedCoverageInputEl.dataset.touched = '1'; });
+document.getElementById('proposedCoverageResetBtn').addEventListener('click', ()=>{
+  proposedCoverageInputEl.dataset.touched = '';
+  compute();
+});
+
+// Building Height ম্যানুয়ালি এডিট করলে সেটাও মনে রাখা হয়, যতক্ষণ না ↺ চাপা হয়
+const buildingHeightInputEl = document.getElementById('buildingHeightInput');
+buildingHeightInputEl.addEventListener('input', ()=>{ buildingHeightInputEl.dataset.touched = '1'; });
+document.getElementById('buildingHeightResetBtn').addEventListener('click', ()=>{
+  buildingHeightInputEl.dataset.touched = '';
+  compute();
+});
+
 const outputRows = [
   ['duPerKatha','DU/কাঠা (ব্লক অনুযায়ী)'],
   ['avgUnitArea','আবাসন ইউনিটের গড় আয়তন (বর্গফুট)'],
@@ -1085,7 +1161,6 @@ const outputRows = [
   ['totalDU','Total Dwelling Unit (DU)'],
   ['floorArea','Total Floor Area (sft)'],
   ['coveredArea','Usable Covered Area/Floor (sft)'],
-  ['floor1','Floor Count — Layout 1 (1 unit/floor)'],
 ];
 const outGrid = document.getElementById('outGrid');
 outputRows.forEach(([id,label,hl])=>{
@@ -1101,9 +1176,16 @@ function fmt(n, d=2){
   return Number(n).toFixed(d).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');
 }
 
-function minRoadWidthFor(UT){
+function minRoadWidthFor(UT, zone){
   if(UT === 'A5') return 20;
   if(UT === 'A4') return 8;
+  const table = resolveSubcatTable(UT, zone);
+  if(table && table.values){
+    const k = table.values.findIndex(v => v !== null);
+    if(k > 0){
+      return Math.max(6, Math.ceil(ROAD_WIDTH_BREAKPOINTS[k-1]));
+    }
+  }
   return 6;
 }
 
@@ -1115,7 +1197,8 @@ function compute(){
 
   const emptyMsg = document.getElementById('emptyMsg');
   const roadWidthWarning = document.getElementById('roadWidthWarning');
-  const minRW = minRoadWidthFor(UT);
+  const AZ = document.getElementById('areaZone').value;
+  const minRW = minRoadWidthFor(UT, AZ);
   const roadWidthInvalid = !isNaN(D) && D < minRW;
   roadWidthWarning.textContent = `রাস্তার প্রশস্ততা কমপক্ষে ${fmt(minRW,0)} ফুট হতে হবে${UT?` (${UT}-এর জন্য)`:''}।`;
   roadWidthWarning.style.display = roadWidthInvalid ? 'block' : 'none';
@@ -1126,31 +1209,57 @@ function compute(){
 
   if(!ready){
     outputRows.forEach(([id])=>document.getElementById('out-'+id).textContent='—');
-    document.getElementById('out-unitArea').textContent = '—';
+    document.getElementById('unitAreaInput').value = '';
+    document.getElementById('unitAreaInput').dataset.touched = '';
+    document.getElementById('proposedCoverageInput').value = '';
+    document.getElementById('proposedCoverageInput').dataset.touched = '';
+    document.getElementById('proposedCoverageInput').disabled = true;
+    document.getElementById('proposedCoverageWarning').style.display = 'none';
+    document.getElementById('duExceedWarning').style.display = 'none';
     document.getElementById('out-plinthArea').textContent = '—';
     document.getElementById('plinthWarning').style.display = 'none';
-    document.getElementById('out-buildingHeight').textContent = '—';
+    document.getElementById('buildingHeightInput').value = '';
+    document.getElementById('buildingHeightInput').dataset.touched = '';
+    document.getElementById('buildingHeightInput').disabled = true;
+    document.getElementById('out-unusedFloorArea').textContent = '—';
+    document.getElementById('floorAreaExceedWarning').style.display = 'none';
+    document.getElementById('unitAreaInput').disabled = true;
+    document.getElementById('unitsPerFloor').disabled = true;
+    document.getElementById('unitsPerFloorMinus').disabled = true;
+    document.getElementById('unitsPerFloorPlus').disabled = true;
     window.__far1 = null;
     computeStep2();
     return;
   }
 
   const F = 720*C; // land area sft
-  const AZ = document.getElementById('areaZone').value;
   const I = plotFARByRoadWidth(D, UT, AZ); // সারণি অনুযায়ী প্লট ভিত্তিক FAR (শ্রেণি+জোন+উপ-শ্রেণি)
 
-  // ব্লক-ভিত্তিক তথ্য (DU/কাঠা, গড় ইউনিট আয়তন) — road width নির্বিশেষে দেখানো হবে
-  document.getElementById('out-duPerKatha').textContent = fmt(BLOCKS[A].du);
+  // ব্লক-ভিত্তিক তথ্য (গড় ইউনিট আয়তন) — road width নির্বিশেষে দেখানো হবে; DU/কাঠা নিচে vals লুপে A3-শর্তসহ সেট হবে
   document.getElementById('out-avgUnitArea').textContent = fmt(BLOCKS[A].avgArea, 0);
 
   if(I===null){
     document.getElementById('out-plotFAR').textContent = 'প্রযোজ্য নয় (এই রোড উইথে অনুমোদিত নয়)';
-    ['areaFAR','baseFAR','maxFAR','incFAR','totalFAR','totalDU','floorArea','coveredArea','floor1']
+    ['areaFAR','baseFAR','maxFAR','incFAR','totalFAR','totalDU','floorArea','coveredArea']
       .forEach(id=>document.getElementById('out-'+id).textContent='—');
-    document.getElementById('out-unitArea').textContent = '—';
+    document.getElementById('unitAreaInput').value = '';
+    document.getElementById('unitAreaInput').dataset.touched = '';
+    document.getElementById('proposedCoverageInput').value = '';
+    document.getElementById('proposedCoverageInput').dataset.touched = '';
+    document.getElementById('proposedCoverageInput').disabled = true;
+    document.getElementById('proposedCoverageWarning').style.display = 'none';
+    document.getElementById('duExceedWarning').style.display = 'none';
     document.getElementById('out-plinthArea').textContent = '—';
     document.getElementById('plinthWarning').style.display = 'none';
-    document.getElementById('out-buildingHeight').textContent = '—';
+    document.getElementById('buildingHeightInput').value = '';
+    document.getElementById('buildingHeightInput').dataset.touched = '';
+    document.getElementById('buildingHeightInput').disabled = true;
+    document.getElementById('out-unusedFloorArea').textContent = '—';
+    document.getElementById('floorAreaExceedWarning').style.display = 'none';
+    document.getElementById('unitAreaInput').disabled = true;
+    document.getElementById('unitsPerFloor').disabled = true;
+    document.getElementById('unitsPerFloorMinus').disabled = true;
+    document.getElementById('unitsPerFloorPlus').disabled = true;
     window.__far1 = null;
     computeStep2();
     return;
@@ -1171,35 +1280,103 @@ function compute(){
   const V = mgcPercent(C, UT);
   const W = V===null ? null : F*V/100;
   const X = W;
-  const floor1 = (X && X>0) ? U/X : null;
 
-  // ---- Unit Area → Unit/Floor (ইনপুট) → Plinth Area → Building Height (শুধু A3) ----
-  const unitArea = (R && R>0) ? U/R : null; // Total Floor Area / (Land Size × DU/কাঠা)
+  // "প্রস্তাবিত কভারেজ এরিয়া" — ডিফল্ট Usable Covered Area/Floor (X), এডিটযোগ্য (A3-তে নিষ্ক্রিয়)
+  const proposedCoverageInput = document.getElementById('proposedCoverageInput');
+  const proposedCoverageActive = (UT !== 'A3');
+  proposedCoverageInput.disabled = !proposedCoverageActive;
+  if(proposedCoverageActive){
+    if(!proposedCoverageInput.dataset.touched){
+      proposedCoverageInput.value = (X && X>0) ? Math.round(X) : '';
+    }
+  } else {
+    proposedCoverageInput.value = '';
+  }
+  const proposedCoverage = parseFloat(proposedCoverageInput.value) || null;
+  const proposedCoverageWarning = document.getElementById('proposedCoverageWarning');
+  const proposedCoverageExceeds = proposedCoverageActive && proposedCoverage!==null && X && X>0 && proposedCoverage > X;
+  proposedCoverageWarning.style.display = proposedCoverageExceeds ? 'block' : 'none';
+  proposedCoverageInput.style.borderColor = proposedCoverageExceeds ? '#c1440e' : '';
+
+  // ---- Unit Area → Unit/Floor → Plinth Area (শুধু A3-এর জন্য প্রযোজ্য) → Building Height (A3: এডিটযোগ্য; অন্যান্য: প্রস্তাবিত কভারেজ এরিয়া থেকে স্বয়ংক্রিয়) ----
+  const isA3ForDU = (UT==='A3');
+  const autoUnitArea = (isA3ForDU && R && R>0) ? U/R : null; // Total Floor Area / (Land Size × DU/কাঠা)
+  const unitAreaInput = document.getElementById('unitAreaInput');
+  unitAreaInput.disabled = !isA3ForDU;
+  if(isA3ForDU){
+    if(!unitAreaInput.dataset.touched){
+      unitAreaInput.value = autoUnitArea ? Math.round(autoUnitArea) : '';
+    }
+  } else {
+    unitAreaInput.value = '';
+  }
+  const unitArea = isA3ForDU ? (parseFloat(unitAreaInput.value) || null) : null;
+
   const unitsPerFloorInput = document.getElementById('unitsPerFloor');
-  const unitsPerFloor = parseFloat(unitsPerFloorInput.value) || 0;
-  const plinthArea = (unitArea && unitsPerFloor>0) ? unitArea*unitsPerFloor : null;
-  const buildingHeight = (UT==='A3' && plinthArea && plinthArea>0) ? U/plinthArea : null;
+  unitsPerFloorInput.disabled = !isA3ForDU;
+  document.getElementById('unitsPerFloorMinus').disabled = !isA3ForDU;
+  document.getElementById('unitsPerFloorPlus').disabled = !isA3ForDU;
+  if(!isA3ForDU){
+    unitsPerFloorInput.value = '';
+  } else if(!unitsPerFloorInput.value){
+    unitsPerFloorInput.value = '1'; // অন্য শ্রেণি থেকে A3-তে ফিরলে ডিফল্ট মান বসানো হচ্ছে
+  }
+  const unitsPerFloor = isA3ForDU ? (parseFloat(unitsPerFloorInput.value) || 0) : 0;
+  const plinthArea = (isA3ForDU && unitArea && unitsPerFloor>0) ? unitArea*unitsPerFloor : null;
+  const autoBuildingHeight = (plinthArea && plinthArea>0) ? U/plinthArea : null;
 
-  document.getElementById('out-unitArea').textContent = fmt(unitArea);
+  const buildingHeightInput = document.getElementById('buildingHeightInput');
+  let buildingHeight;
+  if(isA3ForDU){
+    // A3: আগের মতোই — এডিটযোগ্য, ডিফল্ট Plinth Area থেকে
+    buildingHeightInput.disabled = false;
+    if(!buildingHeightInput.dataset.touched){
+      buildingHeightInput.value = autoBuildingHeight ? Math.round(autoBuildingHeight) : '';
+    }
+    buildingHeight = parseFloat(buildingHeightInput.value) || null;
+  } else {
+    // অন্য উপ-শ্রেণি: এডিট করা যাবে না, Total Floor Area ÷ প্রস্তাবিত কভারেজ এরিয়া থেকে স্বয়ংক্রিয়ভাবে হিসাব
+    buildingHeightInput.disabled = true;
+    buildingHeight = (proposedCoverage && proposedCoverage>0) ? U/proposedCoverage : null;
+    buildingHeightInput.value = buildingHeight ? fmt(buildingHeight) : '';
+  }
+
   const plinthAreaEl = document.getElementById('out-plinthArea');
-  plinthAreaEl.textContent = fmt(plinthArea);
+  plinthAreaEl.textContent = isA3ForDU ? fmt(plinthArea) : 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)';
   const plinthWarning = document.getElementById('plinthWarning');
-  const plinthExceeds = plinthArea!==null && X && X>0 && plinthArea > X;
+  const plinthExceeds = isA3ForDU && plinthArea!==null && X && X>0 && plinthArea > X;
   plinthWarning.style.display = plinthExceeds ? 'block' : 'none';
   plinthAreaEl.style.color = plinthExceeds ? '#c1440e' : '';
-  document.getElementById('out-buildingHeight').textContent = (UT!=='A3') ? 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)' : fmt(buildingHeight);
+
+  // ব্যবহৃত ও অব্যবহৃত ফ্লোর এরিয়া
+  const usedFloorArea = (plinthArea && buildingHeight) ? plinthArea*buildingHeight : null;
+  const unusedFloorArea = (usedFloorArea!==null) ? U-usedFloorArea : null;
+  document.getElementById('out-unusedFloorArea').textContent = !isA3ForDU ? 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)' : fmt(unusedFloorArea);
+
+  // মোট ইউনিট সংখ্যা (Unit/Floor × Building Height) Total DU (T) ছাড়িয়ে গেলে সতর্কতা
+  const duExceedWarning = document.getElementById('duExceedWarning');
+  const totalUnitsBuilt = (unitsPerFloor && buildingHeight) ? unitsPerFloor*buildingHeight : null;
+  const duExceeds = isA3ForDU && T && totalUnitsBuilt!==null && totalUnitsBuilt > T + 1e-6;
+  duExceedWarning.style.display = duExceeds ? 'block' : 'none';
+  buildingHeightInput.style.borderColor = duExceeds ? '#c1440e' : '';
+
+  // ব্যবহৃত ফ্লোর এরিয়া Total Floor Area ছাড়িয়ে গেলে সতর্কতা (Building Height বেশি বসালে)
+  const floorAreaExceedWarning = document.getElementById('floorAreaExceedWarning');
+  const floorAreaExceeds = isA3ForDU && usedFloorArea!==null && U && usedFloorArea > U + 1e-6;
+  floorAreaExceedWarning.style.display = floorAreaExceeds ? 'block' : 'none';
+  if(floorAreaExceeds) buildingHeightInput.style.borderColor = '#c1440e';
 
   const vals = {
     duPerKatha:Q, avgUnitArea:BLOCKS[A].avgArea,
     plotFAR:I, areaFAR:L, baseFAR:M, maxFAR:N,
-    incFAR:O, totalFAR:P, totalDU:T, floorArea:U, coveredArea:X, floor1
+    incFAR:O, totalFAR:P, totalDU:T, floorArea:U, coveredArea:X
   };
   Object.entries(vals).forEach(([id,v])=>{
-    if(id==='totalDU' && UT!=='A3'){
+    if((id==='totalDU' || id==='duPerKatha') && UT!=='A3'){
       document.getElementById('out-'+id).textContent = 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)';
       return;
     }
-    document.getElementById('out-'+id).textContent = fmt(v);
+    document.getElementById('out-'+id).textContent = fmt(v, id==='totalDU' ? 0 : 2);
   });
 
   // expose for step 4-8 module (Appendix 3.7 / সারণি ৩.২৮)
