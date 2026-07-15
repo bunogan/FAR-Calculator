@@ -414,6 +414,7 @@
       <div class="field">
         <label for="landSize">Land Size <span class="unit">(কাঠা)</span></label>
         <input type="number" id="landSize" placeholder="যেমন: 3.25" step="0.01" min="0">
+        <p class="placeholder-hint" id="f1f2Warning" style="display:none;color:#c1440e;"></p>
       </div>
       <div class="field" style="margin-bottom:0">
         <label for="roadWidth">Road Width <span class="unit">(ফুট)</span></label>
@@ -423,25 +424,15 @@
     </div>
   </div>
 
-  <div class="card">
+  <!-- ===================== OUTPUT — A3 (DU ভিত্তিক) ===================== -->
+  <div class="card" id="outputCardA3">
     <div class="card-head">
       <span class="tag tag-output">OUTPUT</span>
-      <h2>হিসাবকৃত ফলাফল</h2>
+      <h2>হিসাবকৃত ফলাফল — A3</h2>
     </div>
     <div id="emptyMsg" class="empty-msg">সবগুলো ইনপুট পূরণ করলে ফলাফল দেখা যাবে।</div>
-    <div class="out-grid" id="outGrid"></div>
-    <div class="out-grid" id="extraOutGrid">
-      <div class="out-row">
-        <div class="k">প্রস্তাবিত কভারেজ এরিয়া (sft) <span class="unit">(এডিট করা যাবে)</span></div>
-        <div class="v">
-          <div style="display:flex;align-items:stretch;gap:4px;">
-            <button type="button" id="proposedCoverageMinus" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">−</button>
-            <input type="number" id="proposedCoverageInput" step="1" min="1" style="width:100%;padding:6px 4px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:center;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
-            <button type="button" id="proposedCoveragePlus" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">+</button>
-            <button type="button" id="proposedCoverageResetBtn" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:28px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
-          </div>
-        </div>
-      </div>
+    <div class="out-grid" id="outGridA3"></div>
+    <div class="out-grid">
       <div class="out-row">
         <div class="k">Unit Area (sft) <span class="unit">(এডিট করা যাবে)</span></div>
         <div class="v">
@@ -464,17 +455,21 @@
         </div>
       </div>
       <div class="out-row">
-        <div class="k">Plinth Area (sft)</div>
+        <div class="k">MGC মিন–ম্যাক্স রেঞ্জ (sft)</div>
+        <div class="v" id="a3-mgcRange">—</div>
+      </div>
+      <div class="out-row">
+        <div class="k">Plinth Area (sft) <span class="unit">(MGC রেঞ্জে সীমাবদ্ধ)</span></div>
         <div class="v" id="out-plinthArea">—</div>
       </div>
       <div class="out-row highlight">
         <div class="k">Building Height (তলা)</div>
         <div class="v">
           <div style="display:flex;align-items:stretch;gap:4px;">
-            <button type="button" id="buildingHeightMinus" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">−</button>
-            <input type="number" id="buildingHeightInput" step="1" min="1" style="width:100%;padding:6px 4px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:center;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
-            <button type="button" id="buildingHeightPlus" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">+</button>
-            <button type="button" id="buildingHeightResetBtn" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:28px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
+            <button type="button" id="buildingHeightMinusA3" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">−</button>
+            <input type="number" id="buildingHeightInputA3" step="0.5" min="1" style="width:100%;padding:6px 4px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:center;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
+            <button type="button" id="buildingHeightPlusA3" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">+</button>
+            <button type="button" id="buildingHeightResetBtnA3" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:28px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
           </div>
         </div>
       </div>
@@ -483,11 +478,51 @@
         <div class="v" id="out-unusedFloorArea">—</div>
       </div>
     </div>
-    <p class="placeholder-hint" id="proposedCoverageWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ প্রস্তাবিত কভারেজ এরিয়া, Usable Covered Area/Floor-এর চেয়ে বেশি হয়ে গেছে — এটা অবশ্যই Usable Covered Area/Floor-এর সমান বা কম হতে হবে।</p>
-    <p class="placeholder-hint" id="plinthWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Plinth Area, Usable Covered Area/Floor-এর চেয়ে বেশি হয়ে গেছে — Plinth Area অবশ্যই Usable Covered Area/Floor-এর সমান বা কম হতে হবে। Unit/Floor সংখ্যা কমিয়ে দেখুন।</p>
-    <p class="placeholder-hint" id="duExceedWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ মোট ইউনিট সংখ্যা (Unit/Floor × Building Height) Total Dwelling Unit (DU)-এর সীমা ছাড়িয়ে যাচ্ছে — Building Height কমান, অথবা ↺ চেপে স্বয়ংক্রিয় মানে ফিরে যান।</p>
-    <p class="placeholder-hint" id="floorAreaExceedWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Building Height বাড়ানোর ফলে ব্যবহৃত ফ্লোর এরিয়া Total Floor Area-এর চেয়ে বেশি হয়ে যাচ্ছে — এটা অনুমোদিত FAR ছাড়িয়ে যাবে। Building Height কমান।</p>
-    <p class="lock-note">🔒 ফলাফল স্বয়ংক্রিয় — সরাসরি এডিট করা যাবে না</p>
+    <p class="placeholder-hint" id="plinthHardWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Unit Area/Unit-Floor বদলানোর ফলে Plinth Area MGC মিন–ম্যাক্স রেঞ্জের বাইরে চলে যাচ্ছে — মান গ্রহণ করা হয়নি, আগের বৈধ মান রাখা হয়েছে।</p>
+    <p class="placeholder-hint" id="duExceedWarningA3" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ মোট ইউনিট সংখ্যা (Unit/Floor × Building Height) Total Dwelling Unit (DU)-এর সীমা ছাড়িয়ে যাচ্ছে — Building Height কমান, অথবা ↺ চেপে স্বয়ংক্রিয় মানে ফিরে যান।</p>
+    <p class="placeholder-hint" id="floorAreaExceedWarningA3" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Building Height বাড়ানোর ফলে ব্যবহৃত ফ্লোর এরিয়া Total Floor Area-এর চেয়ে বেশি হয়ে যাচ্ছে — এটা অনুমোদিত FAR ছাড়িয়ে যাবে। Building Height কমান।</p>
+    <p class="lock-note">🔒 Plinth Area হার্ড-লিমিটেড · Building Height ফ্রি (ওয়ার্নিং-সহ)</p>
+  </div>
+
+  <!-- ===================== OUTPUT — non-A3 ===================== -->
+  <div class="card" id="outputCardOther">
+    <div class="card-head">
+      <span class="tag tag-output">OUTPUT</span>
+      <h2>হিসাবকৃত ফলাফল</h2>
+    </div>
+    <div id="emptyMsgO" class="empty-msg">সবগুলো ইনপুট পূরণ করলে ফলাফল দেখা যাবে।</div>
+    <div class="out-grid" id="outGridOther"></div>
+    <div class="out-grid">
+      <div class="out-row">
+        <div class="k">MGC মিন–ম্যাক্স রেঞ্জ (sft)</div>
+        <div class="v" id="o-mgcRange">—</div>
+      </div>
+      <div class="out-row">
+        <div class="k">প্রস্তাবিত কভারেজ এরিয়া (sft) <span class="unit">(এডিট করা যাবে, MGC রেঞ্জে সীমাবদ্ধ)</span></div>
+        <div class="v">
+          <div style="display:flex;align-items:stretch;gap:4px;">
+            <button type="button" id="proposedCoverageMinus" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">−</button>
+            <input type="number" id="proposedCoverageInput" step="1" min="1" style="width:100%;padding:6px 4px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:center;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
+            <button type="button" id="proposedCoveragePlus" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">+</button>
+            <button type="button" id="proposedCoverageResetBtn" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:28px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
+          </div>
+        </div>
+      </div>
+      <div class="out-row highlight">
+        <div class="k">Building Height (তলা)</div>
+        <div class="v">
+          <div style="display:flex;align-items:stretch;gap:4px;">
+            <button type="button" id="buildingHeightMinusO" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">−</button>
+            <input type="number" id="buildingHeightInputO" step="0.5" min="1" style="width:100%;padding:6px 4px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;text-align:center;border:1.5px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--ink);">
+            <button type="button" id="buildingHeightPlusO" style="flex:none;width:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:16px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">+</button>
+            <button type="button" id="buildingHeightResetBtnO" title="স্বয়ংক্রিয় মান ফিরিয়ে আনুন" style="flex:none;width:28px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:13px;border:1.5px solid var(--input-border);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;">↺</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="placeholder-hint" id="proposedCoverageWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ প্রস্তাবিত কভারেজ এরিয়া MGC মিন–ম্যাক্স রেঞ্জের বাইরে — মান গ্রহণ করা হয়নি, আগের বৈধ মান রাখা হয়েছে।</p>
+    <p class="placeholder-hint" id="floorAreaExceedWarningO" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Building Height বাড়ানোর ফলে ব্যবহৃত ফ্লোর এরিয়া Total Floor Area-এর চেয়ে বেশি হয়ে যাচ্ছে — এটা অনুমোদিত FAR ছাড়িয়ে যাবে। Building Height কমান।</p>
+    <p class="lock-note">🔒 প্রস্তাবিত কভারেজ এরিয়া হার্ড-লিমিটেড · Building Height ফ্রি (ওয়ার্নিং-সহ)</p>
   </div>
 
   <div class="card">
@@ -498,7 +533,7 @@
     <div class="card-body">
       <p class="placeholder-hint" style="margin-bottom:10px;">উপরের হিসাব থেকে Base FAR, Max FAR, জমির আয়তন, রাস্তার প্রশস্ততা ও নেট জনঘনত্ব (ব্লক অনুযায়ী) স্বয়ংক্রিয়ভাবে নেওয়া হয়েছে।</p>
 
-      <div class="field">
+      <div class="field" id="netDensityField">
         <label>কাঙ্ক্ষিত নেট জনঘনত্ব <span class="unit">(ইউনিট/কাঠা — ব্লক অনুযায়ী স্বয়ংক্রিয়)</span></label>
         <div id="netDensityDisplay" style="padding:10px 12px;border:1.5px solid var(--output-border);border-radius:6px;background:var(--output-bg);font-family:'Space Mono',monospace;font-size:16px;font-weight:700;">—</div>
       </div>
@@ -1113,8 +1148,21 @@ function mgcPercent(C, UT){
   if(C<=40) return 45;
   return 40;
 }
+// সারণি ৩ (বাংলাদেশ গেজেট, অতিরিক্ত, ডিসেম্বর ১৪, ২০২৫) — সর্বনিম্ন ভূমি আচ্ছাদন (Min MGC)
+function mgcMinPercent(C, UT){
+  if(UT === 'A6') return 52; // A6: সাশ্রয়ী আবাসন — যেকোনো প্লটের ক্ষেত্রে
+  if(UT === 'B1' || UT === 'B2') return null; // প্রযোজ্য নয় (আলাদা ফিক্সড ম্যাক্স রেট, সারণি ৩-এর বাইরে)
+  if(UT && UT[0] === 'J') return null; // প্রযোজ্য নয়
+  if(UT && UT[0] === 'G' && C>10) return null; // প্রযোজ্য নয়
+  if(C<=2) return 52.5;
+  if(C<=3) return 50;
+  if(C<=4) return 48.5;
+  if(C<=6) return 46.5;
+  if(C<=10) return 45;
+  return null; // ১০ কাঠার বেশি — মিনিমাম প্রযোজ্য নয়
+}
 
-const fields = ['block','useType','landSize','roadWidth','unitsPerFloor','unitAreaInput','buildingHeightInput','proposedCoverageInput'].map(id=>document.getElementById(id));
+const fields = ['block','useType','landSize','roadWidth','unitsPerFloor','unitAreaInput','buildingHeightInputA3','buildingHeightInputO','proposedCoverageInput'].map(id=>document.getElementById(id));
 fields.forEach(f=>f.addEventListener('input', compute));
 fields.forEach(f=>f.addEventListener('change', compute));
 
@@ -1138,13 +1186,13 @@ document.getElementById('unitAreaResetBtn').addEventListener('click', ()=>{
   unitAreaInputEl.dataset.touched = '';
   compute();
 });
-document.getElementById('unitAreaMinus').addEventListener('click', ()=>{
+attachHoldRepeat(document.getElementById('unitAreaMinus'), ()=>{
   const cur = parseFloat(unitAreaInputEl.value) || 0;
   unitAreaInputEl.value = Math.max(1, cur-10);
   unitAreaInputEl.dataset.touched = '1';
   compute();
 });
-document.getElementById('unitAreaPlus').addEventListener('click', ()=>{
+attachHoldRepeat(document.getElementById('unitAreaPlus'), ()=>{
   const cur = parseFloat(unitAreaInputEl.value) || 0;
   unitAreaInputEl.value = cur+10;
   unitAreaInputEl.dataset.touched = '1';
@@ -1158,39 +1206,70 @@ document.getElementById('proposedCoverageResetBtn').addEventListener('click', ()
   proposedCoverageInputEl.dataset.touched = '';
   compute();
 });
-document.getElementById('proposedCoverageMinus').addEventListener('click', ()=>{
+attachHoldRepeat(document.getElementById('proposedCoverageMinus'), ()=>{
   const cur = parseFloat(proposedCoverageInputEl.value) || 0;
   proposedCoverageInputEl.value = Math.max(1, cur-10);
   proposedCoverageInputEl.dataset.touched = '1';
   compute();
 });
-document.getElementById('proposedCoveragePlus').addEventListener('click', ()=>{
+attachHoldRepeat(document.getElementById('proposedCoveragePlus'), ()=>{
   const cur = parseFloat(proposedCoverageInputEl.value) || 0;
   proposedCoverageInputEl.value = cur+10;
   proposedCoverageInputEl.dataset.touched = '1';
   compute();
 });
 
-// Building Height ম্যানুয়ালি এডিট করলে সেটাও মনে রাখা হয়, যতক্ষণ না ↺ চাপা হয়
-const buildingHeightInputEl = document.getElementById('buildingHeightInput');
-buildingHeightInputEl.addEventListener('input', ()=>{ buildingHeightInputEl.dataset.touched = '1'; });
-document.getElementById('buildingHeightResetBtn').addEventListener('click', ()=>{
-  buildingHeightInputEl.dataset.touched = '';
-  compute();
-});
-document.getElementById('buildingHeightMinus').addEventListener('click', ()=>{
-  const cur = parseFloat(buildingHeightInputEl.value) || 1;
-  buildingHeightInputEl.value = Math.max(1, cur-1);
-  buildingHeightInputEl.dataset.touched = '1';
-  compute();
-});
-document.getElementById('buildingHeightPlus').addEventListener('click', ()=>{
-  const cur = parseFloat(buildingHeightInputEl.value) || 1;
-  buildingHeightInputEl.value = cur+1;
-  buildingHeightInputEl.dataset.touched = '1';
-  compute();
-});
+// Building Height ম্যানুয়ালি এডিট করলে সেটাও মনে রাখা হয়, যতক্ষণ না ↺ চাপা হয় (A3 ও non-A3-এর জন্য আলাদা, দুটোই ফ্রি — শুধু ওয়ার্নিং, ধাপ ০.৫)
+function wireBuildingHeightControls(inputId, minusId, plusId, resetId){
+  const el = document.getElementById(inputId);
+  el.addEventListener('input', ()=>{ el.dataset.touched = '1'; });
+  document.getElementById(resetId).addEventListener('click', ()=>{
+    el.dataset.touched = '';
+    compute();
+  });
+  document.getElementById(minusId).addEventListener('click', ()=>{
+    const cur = parseFloat(el.value) || 1;
+    el.value = Math.max(1, roundHalf(cur-0.5));
+    el.dataset.touched = '1';
+    compute();
+  });
+  document.getElementById(plusId).addEventListener('click', ()=>{
+    const cur = parseFloat(el.value) || 1;
+    el.value = roundHalf(cur+0.5);
+    el.dataset.touched = '1';
+    compute();
+  });
+}
+function roundHalf(n){ return Math.round(n*2)/2; }
 
+// প্রেস-অ্যান্ড-হোল্ড: বাটন চেপে ধরে রাখলে ক্রমাগত মান বাড়বে/কমবে
+function attachHoldRepeat(btn, fn, delay=400, interval=90){
+  let timer = null, started = false;
+  const start = (e)=>{
+    if(e) e.preventDefault();
+    if(btn.disabled) return;
+    started = true;
+    fn();
+    timer = setTimeout(function repeat(){
+      if(btn.disabled){ stop(); return; }
+      fn();
+      timer = setTimeout(repeat, interval);
+    }, delay);
+  };
+  const stop = ()=>{
+    if(timer){ clearTimeout(timer); timer = null; }
+    started = false;
+  };
+  btn.addEventListener('pointerdown', start);
+  btn.addEventListener('pointerup', stop);
+  btn.addEventListener('pointerleave', stop);
+  btn.addEventListener('pointercancel', stop);
+  // ক্লিকের ডুপ্লিকেট এড়াতে: pointerdown-ই প্রথম কলটা করে দিচ্ছে, তাই click ইভেন্ট আলাদাভাবে বসানো হচ্ছে না
+}
+wireBuildingHeightControls('buildingHeightInputA3','buildingHeightMinusA3','buildingHeightPlusA3','buildingHeightResetBtnA3');
+wireBuildingHeightControls('buildingHeightInputO','buildingHeightMinusO','buildingHeightPlusO','buildingHeightResetBtnO');
+
+// আউটপুট রো — A3 কার্ডে DU-সংক্রান্ত রো (duPerKatha, totalDU) সহ; non-A3 কার্ডে সেগুলো বাদ
 const outputRows = [
   ['duPerKatha','DU/কাঠা (ব্লক অনুযায়ী)'],
   ['avgUnitArea','আবাসন ইউনিটের গড় আয়তন (বর্গফুট)'],
@@ -1204,14 +1283,26 @@ const outputRows = [
   ['floorArea','Total Floor Area (sft)'],
   ['coveredArea','Usable Covered Area/Floor (sft)'],
 ];
-const outGrid = document.getElementById('outGrid');
-outputRows.forEach(([id,label,hl])=>{
-  const row = document.createElement('div');
-  row.className = 'out-row' + (hl? ' highlight':'');
-  const vClass = 'v';
-  row.innerHTML = `<div class="k">${label}</div><div class="${vClass}" id="out-${id}">—</div>`;
-  outGrid.appendChild(row);
-});
+const A3_ONLY_IDS = new Set(['duPerKatha','totalDU','avgUnitArea']);
+function buildOutGrid(containerId, prefix, excludeA3Only){
+  const grid = document.getElementById(containerId);
+  outputRows.forEach(([id,label,hl])=>{
+    if(excludeA3Only && A3_ONLY_IDS.has(id)) return;
+    const row = document.createElement('div');
+    row.className = 'out-row' + (hl? ' highlight':'');
+    row.innerHTML = `<div class="k">${label}</div><div class="v" id="${prefix}-${id}">—</div>`;
+    grid.appendChild(row);
+  });
+}
+buildOutGrid('outGridA3', 'a3', false);
+buildOutGrid('outGridOther', 'o', true);
+// পুরনো compute()-এর সাথে সামঞ্জস্যের জন্য: একটা মান দুই কার্ডেই (যেটা প্রযোজ্য) বসিয়ে দেয়
+function setOut(id, text){
+  const elA = document.getElementById('a3-'+id);
+  if(elA) elA.textContent = text;
+  const elO = document.getElementById('o-'+id);
+  if(elO) elO.textContent = text;
+}
 
 function fmt(n, d=2){
   if(n===null || n===undefined || isNaN(n)) return '—';
@@ -1231,13 +1322,55 @@ function minRoadWidthFor(UT, zone){
   return 6;
 }
 
+function toggleOutputCards(UT){
+  const isA3 = (UT === 'A3');
+  document.getElementById('outputCardA3').style.display = isA3 ? '' : 'none';
+  document.getElementById('outputCardOther').style.display = isA3 ? 'none' : '';
+}
+
+function resetOutputFields(){
+  outputRows.forEach(([id])=>setOut(id,'—'));
+  document.getElementById('unitAreaInput').value = '';
+  document.getElementById('unitAreaInput').dataset.touched = '';
+  document.getElementById('unitAreaInput').dataset.lastValid = '';
+  document.getElementById('proposedCoverageInput').value = '';
+  document.getElementById('proposedCoverageInput').dataset.touched = '';
+  document.getElementById('proposedCoverageInput').dataset.lastValid = '';
+  document.getElementById('proposedCoverageInput').disabled = true;
+  document.getElementById('proposedCoverageMinus').disabled = true;
+  document.getElementById('proposedCoveragePlus').disabled = true;
+  document.getElementById('proposedCoverageWarning').style.display = 'none';
+  document.getElementById('duExceedWarningA3').style.display = 'none';
+  document.getElementById('out-plinthArea').textContent = '—';
+  document.getElementById('plinthHardWarning').style.display = 'none';
+  ['buildingHeightInputA3','buildingHeightInputO'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.value = ''; el.dataset.touched = ''; el.disabled = true;
+  });
+  ['buildingHeightMinusA3','buildingHeightPlusA3','buildingHeightMinusO','buildingHeightPlusO']
+    .forEach(id=>document.getElementById(id).disabled = true);
+  document.getElementById('out-unusedFloorArea').textContent = '—';
+  document.getElementById('floorAreaExceedWarningA3').style.display = 'none';
+  document.getElementById('floorAreaExceedWarningO').style.display = 'none';
+  document.getElementById('a3-mgcRange').textContent = '—';
+  document.getElementById('o-mgcRange').textContent = '—';
+  document.getElementById('unitAreaInput').disabled = true;
+  document.getElementById('unitAreaMinus').disabled = true;
+  document.getElementById('unitAreaPlus').disabled = true;
+  document.getElementById('unitsPerFloor').disabled = true;
+  document.getElementById('unitsPerFloorMinus').disabled = true;
+  document.getElementById('unitsPerFloorPlus').disabled = true;
+}
+
 function compute(){
   const A = blockSel.value;
   const UT = useTypeSel.value;
   const C = parseFloat(document.getElementById('landSize').value);
   const D = parseFloat(document.getElementById('roadWidth').value);
 
+  toggleOutputCards(UT);
   const emptyMsg = document.getElementById('emptyMsg');
+  const emptyMsgO = document.getElementById('emptyMsgO');
   const roadWidthWarning = document.getElementById('roadWidthWarning');
   const AZ = document.getElementById('areaZone').value;
   const minRW = minRoadWidthFor(UT, AZ);
@@ -1246,35 +1379,29 @@ function compute(){
   roadWidthWarning.style.display = roadWidthInvalid ? 'block' : 'none';
   document.getElementById('roadWidth').min = minRW;
 
+  // F1 (ছোট দোকান, <৩০০ বর্গমিটার) ও F2 (বড় দোকান, >৩০০ বর্গমিটার) — জমির আয়তন-ভিত্তিক শর্ত
+  const F1F2_THRESHOLD_KATHA = 300 / 66.8902; // ৩০০ বর্গমিটার ≈ ৪.৪৯ কাঠা
+  const f1f2Warning = document.getElementById('f1f2Warning');
+  if(!isNaN(C) && C>0 && (UT==='F1' || UT==='F2')){
+    if(UT==='F1' && C >= F1F2_THRESHOLD_KATHA){
+      f1f2Warning.textContent = `⚠️ F1 (ছোট দোকান ও বাজার) শুধু ৩০০ বর্গমিটার (≈ ${fmt(F1F2_THRESHOLD_KATHA,2)} কাঠা)-এর কম জমির জন্য প্রযোজ্য — আপনার জমি এর বেশি, F2 বিবেচনা করুন।`;
+      f1f2Warning.style.display = 'block';
+    } else if(UT==='F2' && C < F1F2_THRESHOLD_KATHA){
+      f1f2Warning.textContent = `⚠️ F2 (বড় দোকান ও বাজার) শুধু ৩০০ বর্গমিটার (≈ ${fmt(F1F2_THRESHOLD_KATHA,2)} কাঠা)-এর বেশি জমির জন্য প্রযোজ্য — আপনার জমি এর কম, F1 বিবেচনা করুন।`;
+      f1f2Warning.style.display = 'block';
+    } else {
+      f1f2Warning.style.display = 'none';
+    }
+  } else {
+    f1f2Warning.style.display = 'none';
+  }
+
   const ready = A!=='' && UT!=='' && !isNaN(C) && !isNaN(D) && C>0 && D>=minRW;
   emptyMsg.style.display = ready ? 'none' : 'block';
+  emptyMsgO.style.display = ready ? 'none' : 'block';
 
   if(!ready){
-    outputRows.forEach(([id])=>document.getElementById('out-'+id).textContent='—');
-    document.getElementById('unitAreaInput').value = '';
-    document.getElementById('unitAreaInput').dataset.touched = '';
-    document.getElementById('proposedCoverageInput').value = '';
-    document.getElementById('proposedCoverageInput').dataset.touched = '';
-    document.getElementById('proposedCoverageInput').disabled = true;
-    document.getElementById('proposedCoverageMinus').disabled = true;
-    document.getElementById('proposedCoveragePlus').disabled = true;
-    document.getElementById('proposedCoverageWarning').style.display = 'none';
-    document.getElementById('duExceedWarning').style.display = 'none';
-    document.getElementById('out-plinthArea').textContent = '—';
-    document.getElementById('plinthWarning').style.display = 'none';
-    document.getElementById('buildingHeightInput').value = '';
-    document.getElementById('buildingHeightInput').dataset.touched = '';
-    document.getElementById('buildingHeightInput').disabled = true;
-    document.getElementById('buildingHeightMinus').disabled = true;
-    document.getElementById('buildingHeightPlus').disabled = true;
-    document.getElementById('out-unusedFloorArea').textContent = '—';
-    document.getElementById('floorAreaExceedWarning').style.display = 'none';
-    document.getElementById('unitAreaInput').disabled = true;
-    document.getElementById('unitAreaMinus').disabled = true;
-    document.getElementById('unitAreaPlus').disabled = true;
-    document.getElementById('unitsPerFloor').disabled = true;
-    document.getElementById('unitsPerFloorMinus').disabled = true;
-    document.getElementById('unitsPerFloorPlus').disabled = true;
+    resetOutputFields();
     window.__far1 = null;
     computeStep2();
     return;
@@ -1283,37 +1410,12 @@ function compute(){
   const F = 720*C; // land area sft
   const I = plotFARByRoadWidth(D, UT, AZ); // সারণি অনুযায়ী প্লট ভিত্তিক FAR (শ্রেণি+জোন+উপ-শ্রেণি)
 
-  // ব্লক-ভিত্তিক তথ্য (গড় ইউনিট আয়তন) — road width নির্বিশেষে দেখানো হবে; DU/কাঠা নিচে vals লুপে A3-শর্তসহ সেট হবে
-  document.getElementById('out-avgUnitArea').textContent = fmt(BLOCKS[A].avgArea, 0);
+  // ব্লক-ভিত্তিক তথ্য (গড় ইউনিট আয়তন) — road width নির্বিশেষে দেখানো হবে
+  setOut('avgUnitArea', fmt(BLOCKS[A].avgArea, 0));
 
   if(I===null){
-    document.getElementById('out-plotFAR').textContent = 'প্রযোজ্য নয় (এই রোড উইথে অনুমোদিত নয়)';
-    ['areaFAR','baseFAR','maxFAR','incFAR','totalFAR','totalDU','floorArea','coveredArea']
-      .forEach(id=>document.getElementById('out-'+id).textContent='—');
-    document.getElementById('unitAreaInput').value = '';
-    document.getElementById('unitAreaInput').dataset.touched = '';
-    document.getElementById('proposedCoverageInput').value = '';
-    document.getElementById('proposedCoverageInput').dataset.touched = '';
-    document.getElementById('proposedCoverageInput').disabled = true;
-    document.getElementById('proposedCoverageMinus').disabled = true;
-    document.getElementById('proposedCoveragePlus').disabled = true;
-    document.getElementById('proposedCoverageWarning').style.display = 'none';
-    document.getElementById('duExceedWarning').style.display = 'none';
-    document.getElementById('out-plinthArea').textContent = '—';
-    document.getElementById('plinthWarning').style.display = 'none';
-    document.getElementById('buildingHeightInput').value = '';
-    document.getElementById('buildingHeightInput').dataset.touched = '';
-    document.getElementById('buildingHeightInput').disabled = true;
-    document.getElementById('buildingHeightMinus').disabled = true;
-    document.getElementById('buildingHeightPlus').disabled = true;
-    document.getElementById('out-unusedFloorArea').textContent = '—';
-    document.getElementById('floorAreaExceedWarning').style.display = 'none';
-    document.getElementById('unitAreaInput').disabled = true;
-    document.getElementById('unitAreaMinus').disabled = true;
-    document.getElementById('unitAreaPlus').disabled = true;
-    document.getElementById('unitsPerFloor').disabled = true;
-    document.getElementById('unitsPerFloorMinus').disabled = true;
-    document.getElementById('unitsPerFloorPlus').disabled = true;
+    resetOutputFields();
+    setOut('plotFAR', 'প্রযোজ্য নয় (এই রোড উইথে অনুমোদিত নয়)');
     window.__far1 = null;
     computeStep2();
     return;
@@ -1331,31 +1433,45 @@ function compute(){
   const S = (UT === 'A3') ? R*EXTRA_DU_BONUS : 0; // বোনাস ইউনিট শুধু A3-এর জন্য, সর্বোচ্চ ১০%
   const T = (UT === 'A3') ? R+S : null; // A3 ব্যতীত অন্যান্য ক্ষেত্রে জনঘনত্ব নিরূপণে DU সংখ্যা প্রযোজ্য নয়
   const U = P*F;
-  const V = mgcPercent(C, UT);
-  const W = V===null ? null : F*V/100;
-  const X = W;
+  const V = mgcPercent(C, UT);      // সর্বোচ্চ MGC%
+  const VM = mgcMinPercent(C, UT);  // সর্বনিম্ন MGC%
+  const X = V===null ? null : F*V/100;      // সর্বোচ্চ কভারেজ (sft)
+  const Y = VM===null ? null : F*VM/100;    // সর্বনিম্ন কভারেজ (sft)
+  const mgcRangeText = (X===null) ? '—' : (Y===null ? 'প্রযোজ্য নয় (নিচের সীমা)' : fmt(Y,0)) + ' – ' + fmt(X,0);
+  document.getElementById('a3-mgcRange').textContent = mgcRangeText;
+  document.getElementById('o-mgcRange').textContent = mgcRangeText;
 
-  // "প্রস্তাবিত কভারেজ এরিয়া" — ডিফল্ট Usable Covered Area/Floor (X), এডিটযোগ্য (A3-তে নিষ্ক্রিয়)
+  const isA3ForDU = (UT==='A3');
+
+  // ========================= non-A3: প্রস্তাবিত কভারেজ এরিয়া (হার্ড-লিমিটেড) =========================
   const proposedCoverageInput = document.getElementById('proposedCoverageInput');
-  const proposedCoverageActive = (UT !== 'A3');
+  const proposedCoverageActive = !isA3ForDU;
   proposedCoverageInput.disabled = !proposedCoverageActive;
   document.getElementById('proposedCoverageMinus').disabled = !proposedCoverageActive;
   document.getElementById('proposedCoveragePlus').disabled = !proposedCoverageActive;
+  const proposedCoverageWarning = document.getElementById('proposedCoverageWarning');
+  let proposedCoverage = null;
   if(proposedCoverageActive){
     if(!proposedCoverageInput.dataset.touched){
       proposedCoverageInput.value = (X && X>0) ? Math.round(X) : '';
+      proposedCoverageInput.dataset.lastValid = proposedCoverageInput.value;
     }
+    const candidate = parseFloat(proposedCoverageInput.value);
+    const outOfRange = !isNaN(candidate) && ((X && X>0 && candidate > X + 1e-6) || (Y!==null && candidate < Y - 1e-6));
+    if(outOfRange && proposedCoverageInput.dataset.lastValid){
+      proposedCoverageInput.value = proposedCoverageInput.dataset.lastValid; // মান গ্রহণ করা হলো না, আগের বৈধ মানে ফেরত
+      proposedCoverageWarning.style.display = 'block';
+    } else {
+      proposedCoverageWarning.style.display = 'none';
+      if(!isNaN(candidate)) proposedCoverageInput.dataset.lastValid = proposedCoverageInput.value;
+    }
+    proposedCoverage = parseFloat(proposedCoverageInput.value) || null;
   } else {
     proposedCoverageInput.value = '';
+    proposedCoverageWarning.style.display = 'none';
   }
-  const proposedCoverage = parseFloat(proposedCoverageInput.value) || null;
-  const proposedCoverageWarning = document.getElementById('proposedCoverageWarning');
-  const proposedCoverageExceeds = proposedCoverageActive && proposedCoverage!==null && X && X>0 && proposedCoverage > X;
-  proposedCoverageWarning.style.display = proposedCoverageExceeds ? 'block' : 'none';
-  proposedCoverageInput.style.borderColor = proposedCoverageExceeds ? '#c1440e' : '';
 
-  // ---- Unit Area → Unit/Floor → Plinth Area (শুধু A3-এর জন্য প্রযোজ্য) → Building Height (A3: এডিটযোগ্য; অন্যান্য: প্রস্তাবিত কভারেজ এরিয়া থেকে স্বয়ংক্রিয়) ----
-  const isA3ForDU = (UT==='A3');
+  // ========================= A3: Unit Area → Unit/Floor → Plinth Area (হার্ড-লিমিটেড) =========================
   const autoUnitArea = (isA3ForDU && R && R>0) ? U/R : null; // Total Floor Area / (Land Size × DU/কাঠা)
   const unitAreaInput = document.getElementById('unitAreaInput');
   unitAreaInput.disabled = !isA3ForDU;
@@ -1368,7 +1484,6 @@ function compute(){
   } else {
     unitAreaInput.value = '';
   }
-  const unitArea = isA3ForDU ? (parseFloat(unitAreaInput.value) || null) : null;
 
   const unitsPerFloorInput = document.getElementById('unitsPerFloor');
   unitsPerFloorInput.disabled = !isA3ForDU;
@@ -1379,56 +1494,79 @@ function compute(){
   } else if(!unitsPerFloorInput.value){
     unitsPerFloorInput.value = '1'; // অন্য শ্রেণি থেকে A3-তে ফিরলে ডিফল্ট মান বসানো হচ্ছে
   }
-  const unitsPerFloor = isA3ForDU ? (parseFloat(unitsPerFloorInput.value) || 0) : 0;
-  const plinthArea = (isA3ForDU && unitArea && unitsPerFloor>0) ? unitArea*unitsPerFloor : null;
-  const autoBuildingHeight = (plinthArea && plinthArea>0) ? U/plinthArea : null;
 
-  const buildingHeightInput = document.getElementById('buildingHeightInput');
-  const buildingHeightMinusBtn = document.getElementById('buildingHeightMinus');
-  const buildingHeightPlusBtn = document.getElementById('buildingHeightPlus');
+  const plinthHardWarning = document.getElementById('plinthHardWarning');
+  let unitArea = isA3ForDU ? (parseFloat(unitAreaInput.value) || null) : null;
+  let unitsPerFloor = isA3ForDU ? (parseFloat(unitsPerFloorInput.value) || 0) : 0;
+  if(isA3ForDU){
+    const candidatePlinth = (unitArea && unitsPerFloor>0) ? unitArea*unitsPerFloor : null;
+    const outOfRange = candidatePlinth!==null && ((X && X>0 && candidatePlinth > X + 1e-6) || (Y!==null && candidatePlinth < Y - 1e-6));
+    if(outOfRange){
+      const lastUA = parseFloat(unitAreaInput.dataset.lastValid);
+      const lastUF = parseFloat(unitsPerFloorInput.dataset.lastValid);
+      if(!isNaN(lastUA)) unitAreaInput.value = lastUA;
+      if(!isNaN(lastUF)) unitsPerFloorInput.value = lastUF;
+      plinthHardWarning.style.display = 'block';
+      unitArea = parseFloat(unitAreaInput.value) || null;
+      unitsPerFloor = parseFloat(unitsPerFloorInput.value) || 0;
+    } else {
+      plinthHardWarning.style.display = 'none';
+      if(candidatePlinth!==null){
+        unitAreaInput.dataset.lastValid = unitAreaInput.value;
+        unitsPerFloorInput.dataset.lastValid = unitsPerFloorInput.value;
+      }
+    }
+  } else {
+    plinthHardWarning.style.display = 'none';
+  }
+  const plinthArea = (isA3ForDU && unitArea && unitsPerFloor>0) ? unitArea*unitsPerFloor : null;
+
+  // ========================= Building Height — A3 ও non-A3 দুটোতেই ফ্রি (ওয়ার্নিং-সহ) =========================
+  const bhA3 = document.getElementById('buildingHeightInputA3');
+  const bhA3Minus = document.getElementById('buildingHeightMinusA3');
+  const bhA3Plus = document.getElementById('buildingHeightPlusA3');
+  const bhO = document.getElementById('buildingHeightInputO');
+  const bhOMinus = document.getElementById('buildingHeightMinusO');
+  const bhOPlus = document.getElementById('buildingHeightPlusO');
+
+  const autoBuildingHeightA3 = (plinthArea && plinthArea>0) ? U/plinthArea : null;
+  const autoBuildingHeightO = (proposedCoverage && proposedCoverage>0) ? U/proposedCoverage : null;
+
+  bhA3.disabled = !isA3ForDU; bhA3Minus.disabled = !isA3ForDU; bhA3Plus.disabled = !isA3ForDU;
+  bhO.disabled = isA3ForDU; bhOMinus.disabled = isA3ForDU; bhOPlus.disabled = isA3ForDU;
+
   let buildingHeight;
   if(isA3ForDU){
-    // A3: আগের মতোই — এডিটযোগ্য, ডিফল্ট Plinth Area থেকে
-    buildingHeightInput.disabled = false;
-    buildingHeightMinusBtn.disabled = false;
-    buildingHeightPlusBtn.disabled = false;
-    if(!buildingHeightInput.dataset.touched){
-      buildingHeightInput.value = autoBuildingHeight ? Math.round(autoBuildingHeight) : '';
-    }
-    buildingHeight = parseFloat(buildingHeightInput.value) || null;
+    if(!bhA3.dataset.touched) bhA3.value = autoBuildingHeightA3 ? roundHalf(autoBuildingHeightA3) : '';
+    buildingHeight = parseFloat(bhA3.value) || null;
+    bhO.value = '';
   } else {
-    // অন্য উপ-শ্রেণি: এডিট করা যাবে না, Total Floor Area ÷ প্রস্তাবিত কভারেজ এরিয়া থেকে স্বয়ংক্রিয়ভাবে হিসাব
-    buildingHeightInput.disabled = true;
-    buildingHeightMinusBtn.disabled = true;
-    buildingHeightPlusBtn.disabled = true;
-    buildingHeight = (proposedCoverage && proposedCoverage>0) ? U/proposedCoverage : null;
-    buildingHeightInput.value = buildingHeight ? fmt(buildingHeight) : '';
+    if(!bhO.dataset.touched) bhO.value = autoBuildingHeightO ? roundHalf(autoBuildingHeightO) : '';
+    buildingHeight = parseFloat(bhO.value) || null;
+    bhA3.value = '';
   }
 
   const plinthAreaEl = document.getElementById('out-plinthArea');
-  plinthAreaEl.textContent = isA3ForDU ? fmt(plinthArea) : 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)';
-  const plinthWarning = document.getElementById('plinthWarning');
-  const plinthExceeds = isA3ForDU && plinthArea!==null && X && X>0 && plinthArea > X;
-  plinthWarning.style.display = plinthExceeds ? 'block' : 'none';
-  plinthAreaEl.style.color = plinthExceeds ? '#c1440e' : '';
+  plinthAreaEl.textContent = fmt(plinthArea);
 
-  // ব্যবহৃত ও অব্যবহৃত ফ্লোর এরিয়া
-  const usedFloorArea = (plinthArea && buildingHeight) ? plinthArea*buildingHeight : null;
-  const unusedFloorArea = (usedFloorArea!==null) ? U-usedFloorArea : null;
-  document.getElementById('out-unusedFloorArea').textContent = !isA3ForDU ? 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)' : fmt(unusedFloorArea);
+  // ব্যবহৃত ও অব্যবহৃত ফ্লোর এরিয়া (শুধু A3 কার্ডে দেখানো হয়)
+  const coverageForHeight = isA3ForDU ? plinthArea : proposedCoverage;
+  const usedFloorArea = (coverageForHeight && buildingHeight) ? coverageForHeight*buildingHeight : null;
+  document.getElementById('out-unusedFloorArea').textContent = (usedFloorArea!==null) ? fmt(U-usedFloorArea) : '—';
 
-  // মোট ইউনিট সংখ্যা (Unit/Floor × Building Height) Total DU (T) ছাড়িয়ে গেলে সতর্কতা
-  const duExceedWarning = document.getElementById('duExceedWarning');
+  // A3: মোট ইউনিট সংখ্যা (Unit/Floor × Building Height) Total DU (T) ছাড়িয়ে গেলে সতর্কতা (শুধু ওয়ার্নিং, ব্লক না)
+  const duExceedWarningA3 = document.getElementById('duExceedWarningA3');
   const totalUnitsBuilt = (unitsPerFloor && buildingHeight) ? unitsPerFloor*buildingHeight : null;
   const duExceeds = isA3ForDU && T && totalUnitsBuilt!==null && totalUnitsBuilt > T + 1e-6;
-  duExceedWarning.style.display = duExceeds ? 'block' : 'none';
-  buildingHeightInput.style.borderColor = duExceeds ? '#c1440e' : '';
+  duExceedWarningA3.style.display = duExceeds ? 'block' : 'none';
+  bhA3.style.borderColor = duExceeds ? '#c1440e' : '';
 
-  // ব্যবহৃত ফ্লোর এরিয়া Total Floor Area ছাড়িয়ে গেলে সতর্কতা (Building Height বেশি বসালে)
-  const floorAreaExceedWarning = document.getElementById('floorAreaExceedWarning');
-  const floorAreaExceeds = isA3ForDU && usedFloorArea!==null && U && usedFloorArea > U + 1e-6;
-  floorAreaExceedWarning.style.display = floorAreaExceeds ? 'block' : 'none';
-  if(floorAreaExceeds) buildingHeightInput.style.borderColor = '#c1440e';
+  // ব্যবহৃত ফ্লোর এরিয়া Total Floor Area ছাড়িয়ে গেলে সতর্কতা (শুধু ওয়ার্নিং, দুই কার্ডেই)
+  const floorAreaExceeds = usedFloorArea!==null && U && usedFloorArea > U + 1e-6;
+  document.getElementById('floorAreaExceedWarningA3').style.display = (isA3ForDU && floorAreaExceeds) ? 'block' : 'none';
+  document.getElementById('floorAreaExceedWarningO').style.display = (!isA3ForDU && floorAreaExceeds) ? 'block' : 'none';
+  if(isA3ForDU) bhA3.style.borderColor = floorAreaExceeds ? '#c1440e' : (duExceeds ? '#c1440e' : '');
+  if(!isA3ForDU) bhO.style.borderColor = floorAreaExceeds ? '#c1440e' : '';
 
   const vals = {
     duPerKatha:Q, avgUnitArea:BLOCKS[A].avgArea,
@@ -1437,10 +1575,9 @@ function compute(){
   };
   Object.entries(vals).forEach(([id,v])=>{
     if((id==='totalDU' || id==='duPerKatha') && UT!=='A3'){
-      document.getElementById('out-'+id).textContent = 'প্রযোজ্য নয় (শুধু A3-এর জন্য প্রযোজ্য)';
-      return;
+      return; // non-A3 কার্ডে এই রো-ই নেই
     }
-    document.getElementById('out-'+id).textContent = fmt(v, id==='totalDU' ? 0 : 2);
+    setOut(id, fmt(v, id==='totalDU' ? 0 : 2));
   });
 
   // expose for step 4-8 module (Appendix 3.7 / সারণি ৩.২৮)
@@ -1475,6 +1612,8 @@ function computeStep2(){
   const emptyMsg2 = document.getElementById('emptyMsg2');
   const far1 = window.__far1;
   const netDensity = far1 ? far1.netDensity : NaN;
+  const showNetDensity = far1 && far1.useType === 'A3';
+  document.getElementById('netDensityField').style.display = showNetDensity ? '' : 'none';
   // শুধু netDensity লাগবে হিসাব শুরু করতে — MGC না থাকলেও (>১০ কাঠা) প্রণোদনা/FAR হিসাব চলবে
   const ready = far1 && !isNaN(netDensity) && netDensity>0;
   emptyMsg2.style.display = ready ? 'none' : 'block';
