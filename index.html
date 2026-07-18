@@ -635,22 +635,20 @@
       <h2>মন্তব্য</h2>
     </div>
     <div style="padding:12px 16px 18px;max-height:520px;overflow-y:auto;">
-      <div class="giscus"></div>
-      <script src="https://giscus.app/client.js"
-        data-repo="bunogan/FAR-Calculator"
-        data-repo-id="R_kgDOTPKCEQ"
-        data-category="General"
-        data-category-id="DIC_kwDOTPKCEc4DBdE4"
-        data-mapping="pathname"
-        data-strict="0"
-        data-reactions-enabled="1"
-        data-emit-metadata="0"
-        data-input-position="top"
-        data-theme="light"
-        data-lang="en"
-        crossorigin="anonymous"
-        async>
+      <div id="disqus_thread"></div>
+      <script>
+        var disqus_config = function () {
+          this.page.url = window.location.href;
+          this.page.identifier = 'far-calculator';
+        };
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = 'https://far-calculator.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
       </script>
+      <noscript>মন্তব্য দেখতে জাভাস্ক্রিপ্ট চালু করুন — <a href="https://disqus.com/?ref_noscript" rel="nofollow">Disqus দিয়ে পরিচালিত মন্তব্য</a></noscript>
     </div>
   </div>
 
