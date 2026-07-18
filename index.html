@@ -474,8 +474,12 @@
         </div>
       </div>
       <div class="out-row">
-        <div class="k">অব্যবহৃত ফ্লোর এরিয়া (sft)</div>
+        <div class="k">অব্যবহৃত ফ্লোর এরিয়া (sft) FAR অনুযায়ী</div>
         <div class="v" id="out-unusedFloorArea">—</div>
+      </div>
+      <div class="out-row">
+        <div class="k">অব্যবহৃত ইউনিটের সংখ্যা</div>
+        <div class="v" id="out-unusedUnits">—</div>
       </div>
     </div>
     <p class="placeholder-hint" id="plinthHardWarning" style="display:none;padding:0 16px 12px;color:#c1440e;font-weight:600;">⚠️ Unit Area/Unit-Floor বদলানোর ফলে Plinth Area MGC মিন–ম্যাক্স রেঞ্জের বাইরে চলে যাচ্ছে — মান গ্রহণ করা হয়নি, আগের বৈধ মান রাখা হয়েছে।</p>
@@ -613,6 +617,41 @@
     <div class="out-grid" id="outGrid2"></div>
     <p class="lock-note">🔒 ফলাফল স্বয়ংক্রিয় — সরাসরি এডিট করা যাবে না</p>
     <p class="placeholder-hint" style="padding:0 16px 12px;">শর্ত: বোনাস ইউনিটের জন্য প্রয়োজনীয় মেঝের ক্ষেত্রফল কোনোভাবেই "Floor Space"-এর বেশি হবে না — এই ক্যালকুলেটর প্রতিটা ইউনিটের প্রকৃত আয়তন জানে না বলে এটা স্বয়ংক্রিয়ভাবে যাচাই করা যায় না, নকশার সময় নিজে মিলিয়ে নিতে হবে।</p>
+  </div>
+  <a href="./analysis-report.pdf" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;">
+    <div class="card" style="padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;">
+      <div style="font-size:28px;flex:none;">📊</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:15px;color:var(--ink);">বিশ্লেষণমূলক পর্যালোচনা</div>
+        <div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">এই ক্যালকুলেটরের তথ্য নিয়ে বিস্তারিত বিশ্লেষণ ও প্রস্তাবনা — PDF রিপোর্ট দেখতে/ডাউনলোড করতে ট্যাপ করুন</div>
+      </div>
+      <div style="font-size:20px;color:var(--ink-soft);flex:none;">⬇️</div>
+    </div>
+  </a>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="tag tag-output">COMMENTS</span>
+      <h2>মন্তব্য</h2>
+    </div>
+    <div style="padding:12px 16px 18px;max-height:520px;overflow-y:auto;">
+      <div class="giscus"></div>
+      <script src="https://giscus.app/client.js"
+        data-repo="bunogan/FAR-Calculator"
+        data-repo-id="R_kgDOTPKCEQ"
+        data-category="General"
+        data-category-id="DIC_kwDOTPKCEc4DBdE4"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="light"
+        data-lang="bn"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </div>
   </div>
 
 </main>
@@ -1350,6 +1389,7 @@ function resetOutputFields(){
   ['buildingHeightMinusA3','buildingHeightPlusA3','buildingHeightMinusO','buildingHeightPlusO']
     .forEach(id=>document.getElementById(id).disabled = true);
   document.getElementById('out-unusedFloorArea').textContent = '—';
+  document.getElementById('out-unusedUnits').textContent = '—';
   document.getElementById('floorAreaExceedWarningA3').style.display = 'none';
   document.getElementById('floorAreaExceedWarningO').style.display = 'none';
   document.getElementById('a3-mgcRange').textContent = '—';
@@ -1561,6 +1601,14 @@ function compute(){
   duExceedWarningA3.style.display = duExceeds ? 'block' : 'none';
   bhA3.style.borderColor = duExceeds ? '#c1440e' : '';
 
+  // অব্যবহৃত ইউনিটের সংখ্যা (শুধু A3-এর জন্য প্রযোজ্য) — Total DU (T) থেকে যতটা আসলে তৈরি হয়েছে (totalUnitsBuilt) তা বাদ দিয়ে
+  const unusedUnitsEl = document.getElementById('out-unusedUnits');
+  if(isA3ForDU && T && totalUnitsBuilt!==null){
+    unusedUnitsEl.textContent = fmt(Math.max(0, T-totalUnitsBuilt), 0);
+  } else {
+    unusedUnitsEl.textContent = '—';
+  }
+
   // ব্যবহৃত ফ্লোর এরিয়া Total Floor Area ছাড়িয়ে গেলে সতর্কতা (শুধু ওয়ার্নিং, দুই কার্ডেই)
   const floorAreaExceeds = usedFloorArea!==null && U && usedFloorArea > U + 1e-6;
   document.getElementById('floorAreaExceedWarningA3').style.display = (isA3ForDU && floorAreaExceeds) ? 'block' : 'none';
@@ -1597,9 +1645,11 @@ const outputRows2 = [
   ['bonusDU','বোনাস ইউনিট (শুধু A3, সর্বোচ্চ ১০%)'],
 ];
 const outGrid2 = document.getElementById('outGrid2');
+const OUT2_A3_ONLY_IDS = new Set(['floorSpace','groundCoverage','height','totalDU2','bonusDU']);
 outputRows2.forEach(([id,label,hl])=>{
   const row = document.createElement('div');
   row.className = 'out-row' + (hl? ' highlight':'');
+  row.id = 'out2row-'+id;
   row.innerHTML = `<div class="k">${label}</div><div class="v" id="out2-${id}">—</div>`;
   outGrid2.appendChild(row);
 });
@@ -1614,6 +1664,10 @@ function computeStep2(){
   const netDensity = far1 ? far1.netDensity : NaN;
   const showNetDensity = far1 && far1.useType === 'A3';
   document.getElementById('netDensityField').style.display = showNetDensity ? '' : 'none';
+  OUT2_A3_ONLY_IDS.forEach(id=>{
+    const rowEl = document.getElementById('out2row-'+id);
+    if(rowEl) rowEl.style.display = showNetDensity ? '' : 'none';
+  });
   // শুধু netDensity লাগবে হিসাব শুরু করতে — MGC না থাকলেও (>১০ কাঠা) প্রণোদনা/FAR হিসাব চলবে
   const ready = far1 && !isNaN(netDensity) && netDensity>0;
   emptyMsg2.style.display = ready ? 'none' : 'block';
