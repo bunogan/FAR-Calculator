@@ -415,6 +415,7 @@
         <label for="landSize">Land Size <span class="unit">(কাঠা)</span></label>
         <input type="number" id="landSize" placeholder="যেমন: 3.25" step="0.01" min="0">
         <p class="placeholder-hint" id="f1f2Warning" style="display:none;color:#c1440e;"></p>
+        <p class="placeholder-hint" id="a6LandSizeWarning" style="display:none;"></p>
       </div>
       <div class="field" style="margin-bottom:0">
         <label for="roadWidth">Road Width <span class="unit">(ফুট)</span></label>
@@ -1432,6 +1433,24 @@ function compute(){
     }
   } else {
     f1f2Warning.style.display = 'none';
+  }
+
+  // A6 (সাশ্রয়ী আবাসন) — প্রণোদনার জন্য ন্যূনতম জমির আয়তন (সারণি ৩.২৮, আইটেম ৩)
+  const a6LandSizeWarning = document.getElementById('a6LandSizeWarning');
+  if(UT==='A6' && !isNaN(C) && C>0){
+    a6LandSizeWarning.style.display = 'block';
+    if(C < 10){
+      a6LandSizeWarning.textContent = '⚠️ সাশ্রয়ী আবাসন (A6) প্রণোদনার জন্য ন্যূনতম ১০ কাঠা (বিকল্প ক) বা ২০ কাঠা (বিকল্প খ) জমি প্রয়োজন — বর্তমান আয়তনে কোনো বিকল্পই প্রযোজ্য হবে না।';
+      a6LandSizeWarning.style.color = '#c1440e';
+    } else if(C < 20){
+      a6LandSizeWarning.textContent = '✓ বিকল্প (ক) প্রযোজ্য (≥১০ কাঠা, সর্বোচ্চ +০.৫ FAR) — বিকল্প (খ)-এর জন্য কমপক্ষে ২০ কাঠা প্রয়োজন।';
+      a6LandSizeWarning.style.color = 'var(--ink-soft)';
+    } else {
+      a6LandSizeWarning.textContent = '✓ উভয় বিকল্পই প্রযোজ্য — (ক) সর্বোচ্চ +০.৫ FAR, (খ) সর্বোচ্চ +০.৭৫ FAR।';
+      a6LandSizeWarning.style.color = 'var(--ink-soft)';
+    }
+  } else {
+    a6LandSizeWarning.style.display = 'none';
   }
 
   const ready = A!=='' && UT!=='' && !isNaN(C) && !isNaN(D) && C>0 && D>=minRW;
